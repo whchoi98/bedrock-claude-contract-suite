@@ -1,0 +1,192 @@
+{
+  "started_utc": "2026-05-03T10:40:18Z",
+  "region": "ap-northeast-2",
+  "model": "global.anthropic.claude-opus-4-7",
+  "totals": {
+    "passed": 8,
+    "total": 8
+  },
+  "categories": {
+    "caching": {
+      "passed": 8,
+      "total": 8,
+      "tests": [
+        {
+          "name": "extended_ttl_beta_header_rejected_on_bedrock",
+          "description": "anthropic-beta: extended-cache-ttl-2025-04-11 is rejected on Bedrock",
+          "ok": true,
+          "elapsed_s": 1.686,
+          "info": {
+            "contract": "rejected",
+            "message": "Error code: 400 - {'message': 'invalid beta flag'}"
+          },
+          "error": null
+        },
+        {
+          "name": "cache_multi_breakpoint",
+          "description": "system breakpoint AND user message breakpoint both register",
+          "ok": true,
+          "elapsed_s": 4.753,
+          "info": {
+            "first": {
+              "input": 21,
+              "create": 0,
+              "read": 19507
+            },
+            "second": {
+              "input": 21,
+              "create": 0,
+              "read": 19507
+            },
+            "path": "hot"
+          },
+          "error": null
+        },
+        {
+          "name": "cache_on_messages",
+          "description": "cache_control on a user content block triggers cache create/read",
+          "ok": true,
+          "elapsed_s": 4.301,
+          "info": {
+            "first": {
+              "input": 25,
+              "create": 0,
+              "read": 10005
+            },
+            "second": {
+              "input": 25,
+              "create": 0,
+              "read": 10005
+            },
+            "path": "hot"
+          },
+          "error": null
+        },
+        {
+          "name": "prompt_caching",
+          "description": "cache_control marks a system prefix; 2nd call shows cache_read_input_tokens",
+          "ok": true,
+          "elapsed_s": 4.809,
+          "info": {
+            "first_call_usage": {
+              "input_tokens": 22,
+              "output_tokens": 11,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 16520
+            },
+            "second_call_usage": {
+              "input_tokens": 22,
+              "output_tokens": 11,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 16520
+            },
+            "path": "hot"
+          },
+          "error": null
+        },
+        {
+          "name": "cache_on_tools",
+          "description": "cache_control attached to last tool definition triggers cache use",
+          "ok": true,
+          "elapsed_s": 5.683,
+          "info": {
+            "first": {
+              "input": 450,
+              "create": 0,
+              "read": 30346
+            },
+            "second": {
+              "input": 450,
+              "create": 0,
+              "read": 30346
+            },
+            "path": "hot"
+          },
+          "error": null
+        },
+        {
+          "name": "cache_savings_measured",
+          "description": "cached call: input_tokens collapses; cache_read carries the prefix bulk",
+          "ok": true,
+          "elapsed_s": 5.423,
+          "info": {
+            "first": {
+              "input": 14,
+              "create": 0,
+              "read": 13508
+            },
+            "second": {
+              "input": 14,
+              "create": 0,
+              "read": 13508
+            },
+            "cache_volume": 13508,
+            "billable_input_on_2nd_call": 14,
+            "billable_ratio": 0.001
+          },
+          "error": null
+        },
+        {
+          "name": "cache_ttl_1h",
+          "description": "ttl='1h' on cold cache: fresh write lands in ephemeral_1h_input_tokens (not 5m); second call reads it back",
+          "ok": true,
+          "elapsed_s": 7.098,
+          "info": {
+            "contract": "supported",
+            "first": {
+              "input": 14,
+              "create_total": 39008,
+              "read_total": 0,
+              "create_5m": 0,
+              "create_1h": 39008
+            },
+            "second": {
+              "input": 14,
+              "create_total": 0,
+              "read_total": 39008,
+              "create_5m": 0,
+              "create_1h": 0
+            },
+            "salt": "655f9747348a1aa7",
+            "evidence": {
+              "cold_start_verified": true,
+              "one_hour_bucket_populated_on_fresh_write": true,
+              "not_demoted_to_5m_bucket": true,
+              "second_call_reads_cache": true
+            }
+          },
+          "error": null
+        },
+        {
+          "name": "cache_ttl_mixed_5m_and_1h",
+          "description": "5m + 1h in same request on cold cache: BOTH ephemeral_1h and ephemeral_5m populate on the fresh write; second call reads the sum",
+          "ok": true,
+          "elapsed_s": 7.071,
+          "info": {
+            "contract": "supported",
+            "first_breakdown": {
+              "ephemeral_1h_input_tokens": 34503,
+              "ephemeral_5m_input_tokens": 31504
+            },
+            "second_breakdown": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "first_create_total": 66007,
+            "second_create_total": 0,
+            "first_read": 0,
+            "second_read": 66007,
+            "salt": "d9c6be6d806bcdab",
+            "evidence": {
+              "cold_start_verified": true,
+              "one_hour_bucket_populated_on_fresh_write": true,
+              "five_minute_bucket_populated_on_fresh_write": true,
+              "second_call_reads_back_full_prefix": true
+            }
+          },
+          "error": null
+        }
+      ]
+    }
+  }
+}

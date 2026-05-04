@@ -1,0 +1,26 @@
+# False-positive samples — these look secret-ish but should NOT match
+# the secret-scan.sh patterns. Used to verify pattern specificity.
+
+# Code identifiers and method names (should not trigger)
+class AKIAccessor:
+    pass
+
+# Variable name only, no assignment to a long string
+api_key
+secret
+password
+
+# Documentation references (note: SKIP_PATTERNS excludes *.md, but we
+# still want our regex tight enough to avoid false positives in source).
+# A short example token in a comment:
+# example: "AKIA1234"  (too short to match {16})
+
+# A base64-looking string that's not actually a Bedrock token
+config_blob = "TXkgY29uZmlnIGJsb2I="
+
+# Anthropic-style token but too short
+short_anthropic = "sk-ant-too-short"
+
+# Example placeholder-style markers
+EXAMPLE_KEY = "<your-api-key-here>"
+EXAMPLE_TOKEN = "ABSK...replace-me"

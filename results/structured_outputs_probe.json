@@ -1,0 +1,104 @@
+{
+  "region": "ap-northeast-2",
+  "by_model": {
+    "global.anthropic.claude-opus-4-7": [
+      {
+        "variant": "V1 response_format(json_object)",
+        "accepted": false,
+        "detail": "400: Error code: 400 - {'message': 'response_format: Extra inputs are not permitted'}"
+      },
+      {
+        "variant": "V2 output_config.format(json_schema)",
+        "accepted": false,
+        "detail": "400: Error code: 400 - {'message': 'output_config.format: Extra inputs are not permitted'}"
+      },
+      {
+        "variant": "V3a output_format (no beta header)",
+        "accepted": false,
+        "detail": "400: Error code: 400 - {'message': 'output_format: Extra inputs are not permitted'}"
+      },
+      {
+        "variant": "V3b output_format + beta header",
+        "accepted": false,
+        "detail": "400: Error code: 400 - {'message': 'output_format: Extra inputs are not permitted'}"
+      },
+      {
+        "variant": "V4 strict tool use",
+        "accepted": false,
+        "detail": "400: Error code: 400 - {'message': 'tools.0.custom.strict: Extra inputs are not permitted'}"
+      }
+    ],
+    "global.anthropic.claude-opus-4-6-v1": [
+      {
+        "variant": "V1 response_format(json_object)",
+        "accepted": false,
+        "detail": "400: Error code: 400 - {'message': 'response_format: Extra inputs are not permitted'}"
+      },
+      {
+        "variant": "V2 output_config.format(json_schema)",
+        "accepted": true,
+        "detail": "accepted: {\"city\":\"Seoul\"}",
+        "stop_reason": "end_turn",
+        "input_tokens": 156,
+        "output_tokens": 8
+      },
+      {
+        "variant": "V3a output_format (no beta header)",
+        "accepted": false,
+        "detail": "400: Error code: 400 - {'message': \"output_format: This field is deprecated. Use 'output_config.format' instead. See https://platform.claude.com/docs/en/build-with-claude/structured-outputs for more information.\"}"
+      },
+      {
+        "variant": "V3b output_format + beta header",
+        "accepted": true,
+        "detail": "accepted: {\"city\":\"Seoul\"}",
+        "stop_reason": "end_turn",
+        "input_tokens": 156,
+        "output_tokens": 8
+      },
+      {
+        "variant": "V4 strict tool use",
+        "accepted": true,
+        "detail": "accepted: ",
+        "stop_reason": "tool_use",
+        "input_tokens": 669,
+        "output_tokens": 54
+      }
+    ],
+    "global.anthropic.claude-sonnet-4-6": [
+      {
+        "variant": "V1 response_format(json_object)",
+        "accepted": false,
+        "detail": "400: Error code: 400 - {'message': 'response_format: Extra inputs are not permitted'}"
+      },
+      {
+        "variant": "V2 output_config.format(json_schema)",
+        "accepted": true,
+        "detail": "accepted: {\"city\":\"Seoul\"}",
+        "stop_reason": "end_turn",
+        "input_tokens": 156,
+        "output_tokens": 8
+      },
+      {
+        "variant": "V3a output_format (no beta header)",
+        "accepted": false,
+        "detail": "400: Error code: 400 - {'message': \"output_format: This field is deprecated. Use 'output_config.format' instead. See https://platform.claude.com/docs/en/build-with-claude/structured-outputs for more information.\"}"
+      },
+      {
+        "variant": "V3b output_format + beta header",
+        "accepted": true,
+        "detail": "accepted: {\"city\":\"Seoul\"}",
+        "stop_reason": "end_turn",
+        "input_tokens": 156,
+        "output_tokens": 8
+      },
+      {
+        "variant": "V4 strict tool use",
+        "accepted": true,
+        "detail": "accepted: ",
+        "stop_reason": "tool_use",
+        "input_tokens": 669,
+        "output_tokens": 54
+      }
+    ]
+  }
+}

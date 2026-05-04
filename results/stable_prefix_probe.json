@@ -1,0 +1,101 @@
+{
+  "model": "global.anthropic.claude-opus-4-7",
+  "trials": 5,
+  "results": [
+    {
+      "trial": 1,
+      "first_elapsed_s": 6.99,
+      "second_elapsed_s": 1.85,
+      "first": {
+        "input": 14,
+        "create_total": 15008,
+        "read_total": 0,
+        "create_5m": 0,
+        "create_1h": 15008
+      },
+      "second": {
+        "input": 14,
+        "create_total": 0,
+        "read_total": 15008,
+        "create_5m": 0,
+        "create_1h": 0
+      }
+    },
+    {
+      "trial": 2,
+      "first_elapsed_s": 2.21,
+      "second_elapsed_s": 9.72,
+      "first": {
+        "input": 14,
+        "create_total": 0,
+        "read_total": 15008,
+        "create_5m": 0,
+        "create_1h": 0
+      },
+      "second": {
+        "input": 14,
+        "create_total": 0,
+        "read_total": 15008,
+        "create_5m": 0,
+        "create_1h": 0
+      }
+    },
+    {
+      "trial": 3,
+      "first_elapsed_s": 3.09,
+      "second_elapsed_s": 2.66,
+      "first": {
+        "input": 14,
+        "create_total": 0,
+        "read_total": 15008,
+        "create_5m": 0,
+        "create_1h": 0
+      },
+      "second": {
+        "input": 14,
+        "create_total": 0,
+        "read_total": 15008,
+        "create_5m": 0,
+        "create_1h": 0
+      }
+    },
+    {
+      "trial": 4,
+      "first_elapsed_s": 4.08,
+      "second_elapsed_s": 2.59,
+      "first": {
+        "input": 14,
+        "create_total": 0,
+        "read_total": 15008,
+        "create_5m": 0,
+        "create_1h": 0
+      },
+      "second": {
+        "input": 14,
+        "create_total": 0,
+        "read_total": 15008,
+        "create_5m": 0,
+        "create_1h": 0
+      }
+    },
+    {
+      "trial": 5,
+      "first_elapsed_s": 6.32,
+      "second_elapsed_s": 2.72,
+      "first": {
+        "input": 14,
+        "create_total": 0,
+        "read_total": 15008,
+        "create_5m": 0,
+        "create_1h": 0
+      },
+      "second": {
+        "input": 14,
+        "create_total": 0,
+        "read_total": 15008,
+        "create_5m": 0,
+        "create_1h": 0
+      }
+    }
+  ]
+}

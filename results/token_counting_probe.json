@@ -1,0 +1,53 @@
+{
+  "region": "ap-northeast-2",
+  "by_model": {
+    "global.anthropic.claude-opus-4-7": {
+      "V1_sdk_invoke": {
+        "ok": false,
+        "error": "AnthropicError: Token counting is not supported in Bedrock yet"
+      },
+      "V2_raw_invoke_path": {
+        "ok": false,
+        "status": 403,
+        "body": "{\"Message\":\"User: arn:aws:iam::***REDACTED-ACCOUNT***:user/***REDACTED-USER*** is not authorized to perform: bedrock:CountTokens on resource: arn:aws:bedrock:ap-northeast-2:***REDACTED-ACCOUNT***:inference-profile/global.anthropic.claude-opus-4-7 because no identity-based policy allows the bedrock:CountTokens action\"}"
+      },
+      "V3_raw_anthropic_path": {
+        "ok": true,
+        "status": 200,
+        "body": "{\"Output\":{\"__type\":\"com.amazon.coral.service#UnknownOperationException\"},\"Version\":\"1.0\"}"
+      }
+    },
+    "global.anthropic.claude-opus-4-6-v1": {
+      "V1_sdk_invoke": {
+        "ok": false,
+        "error": "AnthropicError: Token counting is not supported in Bedrock yet"
+      },
+      "V2_raw_invoke_path": {
+        "ok": false,
+        "status": 403,
+        "body": "{\"Message\":\"User: arn:aws:iam::***REDACTED-ACCOUNT***:user/***REDACTED-USER*** is not authorized to perform: bedrock:CountTokens on resource: arn:aws:bedrock:ap-northeast-2:***REDACTED-ACCOUNT***:inference-profile/global.anthropic.claude-opus-4-6-v1 because no identity-based policy allows the bedrock:CountTokens action\""
+      },
+      "V3_raw_anthropic_path": {
+        "ok": true,
+        "status": 200,
+        "body": "{\"Output\":{\"__type\":\"com.amazon.coral.service#UnknownOperationException\"},\"Version\":\"1.0\"}"
+      }
+    },
+    "global.anthropic.claude-sonnet-4-6": {
+      "V1_sdk_invoke": {
+        "ok": false,
+        "error": "AnthropicError: Token counting is not supported in Bedrock yet"
+      },
+      "V2_raw_invoke_path": {
+        "ok": false,
+        "status": 403,
+        "body": "{\"Message\":\"User: arn:aws:iam::***REDACTED-ACCOUNT***:user/***REDACTED-USER*** is not authorized to perform: bedrock:CountTokens on resource: arn:aws:bedrock:ap-northeast-2:***REDACTED-ACCOUNT***:inference-profile/global.anthropic.claude-sonnet-4-6 because no identity-based policy allows the bedrock:CountTokens action\"}"
+      },
+      "V3_raw_anthropic_path": {
+        "ok": true,
+        "status": 200,
+        "body": "{\"Output\":{\"__type\":\"com.amazon.coral.service#UnknownOperationException\"},\"Version\":\"1.0\"}"
+      }
+    }
+  }
+}
