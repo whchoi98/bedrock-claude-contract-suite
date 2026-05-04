@@ -21,6 +21,28 @@ Each scenario was a single `claude -p` invocation that produced one
 response and exited. The proxy logs are in
 `logs/intercept.jsonl`.
 
+## TL;DR — required env vars
+
+| Goal | Required env vars |
+| --- | --- |
+| Bedrock Invoke + 5m default cache | `CLAUDE_CODE_USE_BEDROCK=1` |
+| **Bedrock Invoke + 1h cache** | `CLAUDE_CODE_USE_BEDROCK=1` + `ENABLE_PROMPT_CACHING_1H=1` |
+| Bedrock Invoke + caching disabled | `CLAUDE_CODE_USE_BEDROCK=1` + `DISABLE_PROMPT_CACHING=1` |
+| Mantle (opt-in) | `CLAUDE_CODE_USE_MANTLE=1` (mutually exclusive with `_USE_BEDROCK=1`) |
+| Mantle + 1h cache | `CLAUDE_CODE_USE_MANTLE=1` + `ENABLE_PROMPT_CACHING_1H=1` |
+
+No `anthropic-beta` header is required. Bedrock rejects the documented
+`extended-cache-ttl-2025-04-11` flag, but the `ttl: "1h"` field on
+`cache_control` is honored without it.
+
+**Mantle is never a default.** Absence of `CLAUDE_CODE_USE_MANTLE=1` means
+Claude Code on Bedrock goes through the Invoke API path
+(`/model/{id}/invoke-with-response-stream`). Experiments A through C below
+all run on Invoke; D and D2 require explicit opt-in.
+
+See Experiments A through D2 below for the wire-level evidence behind
+each row.
+
 ## Results
 
 ### Experiment A — Bedrock Invoke, default

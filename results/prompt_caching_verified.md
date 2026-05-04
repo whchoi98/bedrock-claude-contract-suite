@@ -40,6 +40,36 @@ seen in Claude Code wire traces (small/fast model).
 
 ---
 
+## Quick reference — Claude Code env vars
+
+For users who just want the recipe: the env vars below select Claude Code's
+Bedrock envelope and cache TTL. Every row is verified by wire capture in
+[Layer 2](#layer-2--claude-code-on-bedrock).
+
+| Goal | Required env vars | Wire-level effect |
+| --- | --- | --- |
+| Bedrock + 5m default cache (= the default when on Bedrock) | `CLAUDE_CODE_USE_BEDROCK=1` | path: `/model/{id}/invoke-with-response-stream`, 3 breakpoints, no `ttl` field |
+| **Bedrock + 1h cache** | `CLAUDE_CODE_USE_BEDROCK=1` + `ENABLE_PROMPT_CACHING_1H=1` | same path + 3 breakpoints, `ttl: "1h"` on each |
+| Bedrock + caching off | `CLAUDE_CODE_USE_BEDROCK=1` + `DISABLE_PROMPT_CACHING=1` | same path, 0 breakpoints (`cache_control` block stripped entirely) |
+| Mantle (opt-in) | `CLAUDE_CODE_USE_MANTLE=1` (mutually exclusive with `_USE_BEDROCK=1`) | path: `/v1/messages?beta=true`, Anthropic Messages shape, 3 breakpoints, no `ttl` |
+| Mantle + 1h cache | `CLAUDE_CODE_USE_MANTLE=1` + `ENABLE_PROMPT_CACHING_1H=1` | same Mantle path + 3 breakpoints, `ttl: "1h"` on each |
+
+**Notes**
+
+- The `anthropic-beta: extended-cache-ttl-2025-04-11` header is **not needed
+  and not accepted** on Bedrock. The `ttl: "1h"` field on `cache_control`
+  itself is honored without it (see §1.5).
+- **Mantle is opt-in, never a default.** Without `CLAUDE_CODE_USE_MANTLE=1`,
+  Claude Code on Bedrock always goes through the Invoke API. To use Mantle
+  you additionally need (a) one of the 13 Mantle-deployed regions —
+  `ap-northeast-2` is NOT one of them, see
+  [`docs_vs_reality.md`](docs_vs_reality.md) §"Configuration notes" — and
+  (b) account allowlist for the model.
+- AWS credentials are still required: `AWS_BEARER_TOKEN_BEDROCK` (Bearer)
+  or AWS credentials with SigV4, plus `AWS_REGION`.
+
+---
+
 ## Layer 1 — Bedrock API contract
 
 ### 1.1 5-minute cache (default)

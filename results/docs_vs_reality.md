@@ -162,7 +162,11 @@ streaming `/model/{id}/invoke-with-response-stream` paths in some
 configurations — verify per environment.
 
 **Claude Code env vars** to use Mantle:
-- `CLAUDE_CODE_USE_MANTLE=1` — selects Mantle.
+- `CLAUDE_CODE_USE_MANTLE=1` — **explicit opt-in**; mutually exclusive
+  with `CLAUDE_CODE_USE_BEDROCK=1` (Invoke API). Without this env var,
+  Claude Code on Bedrock always goes through the Invoke API path — which
+  is what the matrix in this suite measures. Mantle is **never** a
+  default; users land there only by deliberate configuration.
 - `ANTHROPIC_BEDROCK_MANTLE_BASE_URL` — override the host (useful when a
   gateway sits in front of Mantle, or when forcing a region whose Mantle
   endpoint differs from `AWS_REGION`).

@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- `results/prompt_caching_verified.md` adds "Quick reference — Claude Code env vars" section consolidating all 5 env-var modes (Bedrock 5m default / Bedrock + 1h / Bedrock + disabled / Mantle / Mantle + 1h) into a single table for fast lookup
+- `results/claude_code_caching_findings.md` adds top-of-file TL;DR table mirroring the same env-var matrix so wire-capture readers see the cheat sheet before the experiments
+- `results/docs_vs_reality.md` §"Configuration notes" — strengthen the "Mantle is opt-in, never default" framing on the `CLAUDE_CODE_USE_MANTLE=1` bullet, explicitly noting that without the env var Claude Code on Bedrock always uses the Invoke API path
+
 ## [0.6.0] - 2026-05-03
 
 ### Added
@@ -119,6 +124,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)을 따릅니다.
 
 ## [Unreleased]
+
+### Changed
+- `results/prompt_caching_verified.md`에 "Quick reference — Claude Code env vars" 섹션 추가 — 5가지 env var 모드(Bedrock 5m 기본 / Bedrock + 1h / Bedrock + disabled / Mantle / Mantle + 1h)를 단일 표로 통합해 빠른 참조 제공
+- `results/claude_code_caching_findings.md` 파일 상단에 TL;DR 표 추가 — 동일한 env var 매트릭스를 mirror하여 wire-capture 실험 본문 전에 cheat sheet 노출
+- `results/docs_vs_reality.md` §"Configuration notes" — `CLAUDE_CODE_USE_MANTLE=1` 항목의 framing을 "Mantle은 explicit opt-in이며 default가 아님"으로 명시화, env var 없으면 Claude Code on Bedrock은 항상 Invoke API 경로를 사용한다는 점 추가 기재
 
 ## [0.6.0] - 2026-05-03
 
