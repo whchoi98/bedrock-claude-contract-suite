@@ -16,11 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `results/2026-05-04.md` — final verification report for the 2026-05-04 matrix run; 170/171 PASS, **no contract drift** vs prior baseline (12/9/10 ⛔ counts unchanged across Opus 4.7 / Opus 4.6 / Sonnet 4.6), 1h prompt cache re-verified (57,109 tokens cumulative in 1h bucket), Opus 4.7 Mantle-only divergences (`structured_outputs` / `strict_tool_use` / `thinking_enabled_with_effort`) reconfirmed, single open ❌ on Opus 4.6 `vision_multi_image`
 - `results/matrix-2026-05-04.{json,md}` — dated baseline snapshot per `results/CLAUDE.md` rule, freezing the 2026-05-04 matrix output for historical comparison
+- `results/2026-05-04.md` §9 "Cross-walk against Anthropic build-with-claude/overview" — systematic comparison performed 2026-05-04 against the platform.claude.com docs snapshot: identifies 7 discrepancies (1h cache under-reported by docs; structured_outputs / computer use / tool search / compaction beta header / token counting / effort all over-reported via Bedrock-cell ✓ on overview but reject on Invoke API), 12 agreements, and the meta-pattern that the overview is platform-coarse and hides Mantle vs Invoke endpoint divergence
 
 ### Changed
 - `results/prompt_caching_verified.md` adds "Quick reference — Claude Code env vars" section consolidating all 5 env-var modes (Bedrock 5m default / Bedrock + 1h / Bedrock + disabled / Mantle / Mantle + 1h) into a single table for fast lookup
 - `results/claude_code_caching_findings.md` adds top-of-file TL;DR table mirroring the same env-var matrix so wire-capture readers see the cheat sheet before the experiments
 - `results/docs_vs_reality.md` §"Configuration notes" — strengthen the "Mantle is opt-in, never default" framing on the `CLAUDE_CODE_USE_MANTLE=1` bullet, explicitly noting that without the env var Claude Code on Bedrock always uses the Invoke API path
+- `results/docs_vs_reality.md` adds three new ❗ real-discrepancy entries (§A-2 Computer use, §A-3 Tool search, §A-4 Compaction beta header) — all reject on Bedrock Invoke API for all 3 models, contrary to the `build-with-claude/overview` page's `bedrockBeta` / `bedrock` (GA) cells. §E rows for computer use / tool search updated to cross-reference §A-2 / §A-3 since rejection is universal, not Opus-4.7-specific as previously framed. §G last-reviewed bumped to 2026-05-04
 
 ## [0.6.0] - 2026-05-03
 
@@ -132,11 +134,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `results/2026-05-04.md` 최종 검증 리포트 추가 — 2026-05-04 매트릭스 실행 결과 정리 (170/171 PASS, 이전 baseline 대비 contract drift 없음 — 12/9/10 ⛔ 카운트가 Opus 4.7 / Opus 4.6 / Sonnet 4.6 모두 동일 유지, 1h 프롬프트 캐시 재검증 — 1h 버킷 누적 57,109 토큰, Opus 4.7 Mantle-only 분기(`structured_outputs` / `strict_tool_use` / `thinking_enabled_with_effort`) 재확인, Opus 4.6 `vision_multi_image` ❌ 1건 open)
 - `results/matrix-2026-05-04.{json,md}` dated baseline snapshot 추가 — `results/CLAUDE.md` 규칙에 따라 2026-05-04 매트릭스 시점 보존
+- `results/2026-05-04.md` §9 "Cross-walk against Anthropic build-with-claude/overview" 신규 추가 — 2026-05-04 시점 platform.claude.com docs 스냅샷과 본 매트릭스를 systematic하게 cross-walk한 결과: 7건 discrepancy (1h cache는 docs가 under-report, structured_outputs / computer use / tool search / compaction beta header / token counting / effort는 overview의 Bedrock cell이 ✓로 표기하지만 Invoke API에서 거부됨), 12건 agreement, meta-pattern (overview가 platform 단위로만 표기하여 Mantle vs Invoke 엔드포인트 분기를 가린다는 점) 정리
 
 ### Changed
 - `results/prompt_caching_verified.md`에 "Quick reference — Claude Code env vars" 섹션 추가 — 5가지 env var 모드(Bedrock 5m 기본 / Bedrock + 1h / Bedrock + disabled / Mantle / Mantle + 1h)를 단일 표로 통합해 빠른 참조 제공
 - `results/claude_code_caching_findings.md` 파일 상단에 TL;DR 표 추가 — 동일한 env var 매트릭스를 mirror하여 wire-capture 실험 본문 전에 cheat sheet 노출
 - `results/docs_vs_reality.md` §"Configuration notes" — `CLAUDE_CODE_USE_MANTLE=1` 항목의 framing을 "Mantle은 explicit opt-in이며 default가 아님"으로 명시화, env var 없으면 Claude Code on Bedrock은 항상 Invoke API 경로를 사용한다는 점 추가 기재
+- `results/docs_vs_reality.md`에 ❗ 실측 불일치 항목 3개 신규 추가 (§A-2 Computer use, §A-3 Tool search, §A-4 Compaction beta header) — `build-with-claude/overview` 페이지가 `bedrockBeta` / `bedrock` (GA)로 표기하지만 Bedrock Invoke API에서 3개 모델 모두 거부됨을 명시. §E의 computer use / tool search 항목은 거부가 모든 모델에 적용되므로 (Opus-4.7-specific 아님) §A-2 / §A-3로 cross-reference 갱신. §G last-reviewed 일자를 2026-05-04로 갱신
 
 ## [0.6.0] - 2026-05-03
 

@@ -49,6 +49,43 @@ This means the overview table understates Bedrock support. A user reading
 only the overview would conclude Bedrock is 5m-only; reality is 5m by
 default + 1h via opt-in.
 
+### A-2. ❗ Computer use rejected on Bedrock Invoke API for all 3 models
+
+| Source | Claim |
+| --- | --- |
+| `build-with-claude/overview` Tools → Client-side tools table | Computer use listed as `bedrockBeta` for `claudeApiBeta bedrockBeta vertexAiBeta azureAiBeta` (no model qualifier) |
+| Our measurement | `tests/unsupported/test_computer_use_rejected.py` — Opus 4.7 / Opus 4.6 / Sonnet 4.6 ALL return 400 rejecting `computer-use-2025-01-24`. The `anthropic-beta: computer-use-2025-01-24` header is not honored on `bedrock-runtime` Invoke API. Verified 2026-05-04. |
+
+The overview's `bedrockBeta` cell led prior matrix passes to mis-categorize
+this row as Opus-4.7-specific (see §E). Reality: rejection is universal
+across all three measured models on the Invoke API. The "Beta" tag in the
+overview applies to the Mantle endpoint, which this suite does not exercise.
+
+### A-3. ❗ Tool search rejected on Bedrock Invoke API for all 3 models
+
+| Source | Claim |
+| --- | --- |
+| `build-with-claude/overview` Tool infrastructure table | Tool search listed as `bedrock` (GA) for `claudeApi bedrock vertexAi azureAiBeta` (no qualifier or beta tag) |
+| Our measurement | `tests/unsupported/test_tool_search_rejected.py` — Opus 4.7 / Opus 4.6 / Sonnet 4.6 ALL return 400 rejecting the `tool-search-tool-2025-09-25` tool spec on `bedrock-runtime`. Verified 2026-05-04. |
+
+Same pattern as A-2 (universal rejection on Invoke). Stronger discrepancy
+than A-2 because the overview marks this GA, not Beta — a user who reads
+only the overview has no signal that the GA path differs from the Invoke
+path. Like A-2, this row was previously framed as Opus-4.7-specific in §E.
+
+### A-4. ❗ Compaction beta header rejected on Bedrock Invoke API for all 3 models
+
+| Source | Claim |
+| --- | --- |
+| `build-with-claude/overview` Context management table | Compaction listed as `bedrockBeta` for all four platforms; note "Supported on Opus 4.7, Opus 4.6, and Sonnet 4.6" |
+| Our measurement | `tests/unsupported/test_compaction_header_rejected.py` — Opus 4.7 / Opus 4.6 / Sonnet 4.6 ALL return 400 with "invalid beta flag" for the `anthropic-beta: context-management-2025-06-27` header on `bedrock-runtime` Invoke API. Verified 2026-05-04. |
+
+Important nuance: the related `context_editing` feature (different beta
+header — `tests/messages/test_context_editing_works.py`) IS 🟢 across all 3
+models. So Bedrock supports SOME context-management features but
+specifically rejects the compaction beta header. The overview's single
+"Compaction = bedrockBeta" cell hides this distinction.
+
 ---
 
 ## B. Documentation nuance (real, but not contradiction)
@@ -243,8 +280,8 @@ assumed all Bedrock-listed features just work:
 | Assistant prefill (trailing assistant message) rejected — "must end with a user message" | Not prominently flagged | `tests/messages/test_assistant_prefill.py` |
 | `output_config.format` rejected on Invoke API | Implicit (Mantle requirement note in structured-outputs page) | `tests/messages/test_structured_outputs.py` |
 | `tools[].strict=true` rejected on Invoke API | Same | `tests/tools/test_strict_tool_use.py` |
-| Computer use (`computer-use-2025-01-24` tool spec) rejected | Docs say `bedrockBeta` for computer use generally; Opus 4.7-specific status is empirical | `tests/unsupported/test_computer_use_rejected.py` |
-| Tool search (`tool-search-tool-2025-09-25`) rejected | Same shape as computer use | `tests/unsupported/test_tool_search_rejected.py` |
+| ~~Computer use~~ rejected — **NOT Opus-4.7-specific**: rejection applies to all 3 models on Invoke. Moved framing to §A-2 | Docs `bedrockBeta` cell is Mantle-only | `tests/unsupported/test_computer_use_rejected.py` |
+| ~~Tool search~~ rejected — **NOT Opus-4.7-specific**: rejection applies to all 3 models on Invoke. Moved framing to §A-3 | Docs `bedrock` (GA) cell is Mantle-only | `tests/unsupported/test_tool_search_rejected.py` |
 
 These all track the broader theme: Opus 4.7 has narrower contract surface
 than older Bedrock models within the same Bedrock cell of the docs table.
@@ -285,5 +322,13 @@ All measurements reproducible with `AWS_BEARER_TOKEN_BEDROCK` set.
 ## G. Last reviewed
 
 - 2026-05-03 — initial cross-walk between docs and matrix.
+- 2026-05-04 — re-verified against `results/matrix-2026-05-04.{json,md}`.
+  Added §A-2 (Computer use), §A-3 (Tool search), §A-4 (Compaction beta
+  header) after a fresh comparison against the
+  `build-with-claude/overview` page on platform.claude.com showed all three
+  features are listed for `bedrock` / `bedrockBeta` without endpoint
+  qualifier but reject on Invoke API for all 3 models. §E rows for
+  Computer use / Tool search updated with cross-references to A-2 / A-3
+  (rejection is universal, not Opus-4.7-specific).
 - All inline numbers above were re-verified against `results/matrix.json`
   on the date stamped at the top of `results/latest.md`.
