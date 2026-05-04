@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `results/2026-05-04.md` — final verification report for the 2026-05-04 matrix run; 170/171 PASS, **no contract drift** vs prior baseline (12/9/10 ⛔ counts unchanged across Opus 4.7 / Opus 4.6 / Sonnet 4.6), 1h prompt cache re-verified (57,109 tokens cumulative in 1h bucket), Opus 4.7 Mantle-only divergences (`structured_outputs` / `strict_tool_use` / `thinking_enabled_with_effort`) reconfirmed, single open ❌ on Opus 4.6 `vision_multi_image`
+- `results/matrix-2026-05-04.{json,md}` — dated baseline snapshot per `results/CLAUDE.md` rule, freezing the 2026-05-04 matrix output for historical comparison
+
 ### Changed
 - `results/prompt_caching_verified.md` adds "Quick reference — Claude Code env vars" section consolidating all 5 env-var modes (Bedrock 5m default / Bedrock + 1h / Bedrock + disabled / Mantle / Mantle + 1h) into a single table for fast lookup
 - `results/claude_code_caching_findings.md` adds top-of-file TL;DR table mirroring the same env-var matrix so wire-capture readers see the cheat sheet before the experiments
@@ -124,6 +128,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)을 따릅니다.
 
 ## [Unreleased]
+
+### Added
+- `results/2026-05-04.md` 최종 검증 리포트 추가 — 2026-05-04 매트릭스 실행 결과 정리 (170/171 PASS, 이전 baseline 대비 contract drift 없음 — 12/9/10 ⛔ 카운트가 Opus 4.7 / Opus 4.6 / Sonnet 4.6 모두 동일 유지, 1h 프롬프트 캐시 재검증 — 1h 버킷 누적 57,109 토큰, Opus 4.7 Mantle-only 분기(`structured_outputs` / `strict_tool_use` / `thinking_enabled_with_effort`) 재확인, Opus 4.6 `vision_multi_image` ❌ 1건 open)
+- `results/matrix-2026-05-04.{json,md}` dated baseline snapshot 추가 — `results/CLAUDE.md` 규칙에 따라 2026-05-04 매트릭스 시점 보존
 
 ### Changed
 - `results/prompt_caching_verified.md`에 "Quick reference — Claude Code env vars" 섹션 추가 — 5가지 env var 모드(Bedrock 5m 기본 / Bedrock + 1h / Bedrock + disabled / Mantle / Mantle + 1h)를 단일 표로 통합해 빠른 참조 제공
