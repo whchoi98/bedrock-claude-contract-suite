@@ -37,6 +37,12 @@ permanently captured even when the probe script is later modified.
 
 - **Use `make_client()`** for SDK-based probes — picks up
   `AWS_BEARER_TOKEN_BEDROCK` consistently.
+- **Scope bearer tokens to function-local** — for raw HTTP probes that
+  must build `Authorization: Bearer …` themselves, read
+  `AWS_BEARER_TOKEN_BEDROCK` inside a per-request helper, never into a
+  module-level constant. Mirrors `client.make_client()`, which never
+  exposes the token to module scope. Shrinks the leak window for
+  tracebacks, debuggers, and `vars(module)` introspection.
 - **Use `config.ALL_MODELS` / `config.REGION`** — don't redeclare model
   lists.
 - **Reuse `tests._base.text_of`** — don't reimplement text concatenation.

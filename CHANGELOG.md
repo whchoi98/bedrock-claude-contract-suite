@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - `results/docs_vs_reality.md` sections C (Spurious discrepancies — C-1 structured outputs, C-2 strict tool use), D (Aligned), and E (Opus 4.7 specific contract changes) removed. Sections F → C (Reproducing each row) and G → D (Last reviewed) renumbered. Dead `§E` references in §A-2 / §A-3 / §G content cleaned. Bash code comments in §F (now §C) updated to drop `(C-1)` / `(C-2)` references. `results/2026-05-04.md` §9.1 row 7 (Effort + Opus 4.7) updated to point to `tests/thinking/test_enabled_with_effort.py` directly instead of dead `§E` link.
 
+### Security
+- `scripts/probe_token_counting.py` — drop module-level `TOKEN = os.environ["AWS_BEARER_TOKEN_BEDROCK"]` global; replace with a function-scoped `_bearer_token()` helper called inside `_raw_post()`. Mirrors `client.make_client()`, which never exposes the token to module scope. Shrinks the leak surface for tracebacks, debuggers, and `vars(module)` introspection on the only probe that builds raw `Authorization: Bearer …` headers (V2/V3 paths the SDK does not expose). Codified as a new rule in `scripts/CLAUDE.md` so future raw-HTTP probes inherit the pattern.
+
 ## [0.6.0] - 2026-05-03
 
 ### Added
@@ -147,6 +150,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - `results/docs_vs_reality.md` 섹션 C (Spurious discrepancies — C-1 structured outputs, C-2 strict tool use), D (Aligned), E (Opus 4.7 specific contract changes) 제거. 섹션 F → C (각 row 재현 명령), G → D (Last reviewed) 재번호화. §A-2 / §A-3 / §G 본문의 dead `§E` 참조 정리. §F (현 §C)의 bash 주석에서 `(C-1)` / `(C-2)` 참조 제거. `results/2026-05-04.md` §9.1 row 7 (Effort + Opus 4.7)의 dead `§E` 링크를 `tests/thinking/test_enabled_with_effort.py` 직접 참조로 갱신.
+
+### Security
+- `scripts/probe_token_counting.py` — 모듈 레벨 전역 `TOKEN = os.environ["AWS_BEARER_TOKEN_BEDROCK"]` 제거, 함수 스코프 `_bearer_token()` 헬퍼로 대체하여 `_raw_post()` 내부에서만 호출. `client.make_client()`가 토큰을 모듈 스코프에 노출하지 않는 패턴과 일치. SDK가 노출하지 않는 V2/V3 경로(raw `Authorization: Bearer …` 헤더 직접 구성) probe에서 traceback / 디버거 / `vars(module)` introspection 시점의 누출 면적을 축소. `scripts/CLAUDE.md` Rules에 동일 규칙 신설 — 이후 raw-HTTP probe가 첫 작성 시점부터 같은 패턴을 따르도록 강제.
 
 ## [0.6.0] - 2026-05-03
 

@@ -22,9 +22,16 @@ from anthropic import AnthropicError
 from client import make_client
 from config import ALL_MODELS, REGION
 
-TOKEN = os.environ["AWS_BEARER_TOKEN_BEDROCK"]
 INVOKE_BASE = f"https://bedrock-runtime.{REGION}.amazonaws.com"
 MSG = [{"role": "user", "content": "How many tokens does this message contain?"}]
+
+
+def _bearer_token() -> str:
+    tok = os.environ.get("AWS_BEARER_TOKEN_BEDROCK")
+    if not tok:
+        print("ERROR: AWS_BEARER_TOKEN_BEDROCK not set.", file=sys.stderr)
+        sys.exit(2)
+    return tok
 
 
 def v1_sdk_invoke(client, model: str) -> dict:
@@ -38,7 +45,7 @@ def v1_sdk_invoke(client, model: str) -> dict:
 def _raw_post(url: str, body: dict) -> dict:
     try:
         r = httpx.post(url, headers={
-            "Authorization": f"Bearer {TOKEN}",
+            "Authorization": f"Bearer {_bearer_token()}",
             "Content-Type": "application/json",
         }, json=body, timeout=30.0)
         return {"ok": r.status_code == 200, "status": r.status_code, "body": r.text[:300]}
