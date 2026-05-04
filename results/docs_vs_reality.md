@@ -457,10 +457,9 @@ non-deployment입니다. Opus 4.7 + structured outputs는 Mantle이 Seoul에 shi
   / 4.6, 모든 Amazon Nova/Titan, Cohere, Llama, embedding 모델, 이미지 생성
   모델. 이들은 Mantle이 배포된 리전에서도 Mantle에서 실행 불가.
 
-이것이 우리 테스트 결과가 일관되었던 이유입니다: Opus 4.6 / Sonnet 4.6은 (가용
-엔드포인트가 `bedrock-runtime`뿐이므로) 거기서 structured outputs가 동작하고,
-Opus 4.7은 `bedrock-runtime`에서 거부합니다 (해당 기능에 대해 Mantle을
-expect함).
+Opus 4.6 / Sonnet 4.6은 (가용 엔드포인트가 `bedrock-runtime`뿐이므로) 거기서
+structured outputs가 동작하고, Opus 4.7은 `bedrock-runtime`에서 거부합니다
+(해당 기능에 대해 Mantle을 expect함).
 
 **Mantle용 인증**: Bedrock API Key (Bearer) *또는* AWS credentials with SigV4.
 `bedrock-runtime`은 AWS credentials만 수용; Bedrock API Key는 Mantle에서
