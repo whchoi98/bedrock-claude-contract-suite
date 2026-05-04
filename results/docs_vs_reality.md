@@ -73,9 +73,10 @@ default + 1h via opt-in.
 | Our measurement | `tests/unsupported/test_computer_use_rejected.py` — Opus 4.7 / Opus 4.6 / Sonnet 4.6 ALL return 400 rejecting `computer-use-2025-01-24`. The `anthropic-beta: computer-use-2025-01-24` header is not honored on `bedrock-runtime` Invoke API. Verified 2026-05-04. |
 
 The overview's `bedrockBeta` cell led prior matrix passes to mis-categorize
-this row as Opus-4.7-specific (see §E). Reality: rejection is universal
-across all three measured models on the Invoke API. The "Beta" tag in the
-overview applies to the Mantle endpoint, which this suite does not exercise.
+this row as Opus-4.7-specific (a historical mis-classification, since
+corrected). Reality: rejection is universal across all three measured
+models on the Invoke API. The "Beta" tag in the overview applies to the
+Mantle endpoint, which this suite does not exercise.
 
 ### A-3. ❗ Tool search rejected on Bedrock Invoke API for all 3 models
 
@@ -87,7 +88,8 @@ overview applies to the Mantle endpoint, which this suite does not exercise.
 Same pattern as A-2 (universal rejection on Invoke). Stronger discrepancy
 than A-2 because the overview marks this GA, not Beta — a user who reads
 only the overview has no signal that the GA path differs from the Invoke
-path. Like A-2, this row was previously framed as Opus-4.7-specific in §E.
+path. Like A-2, this row was previously framed as Opus-4.7-specific (a
+historical mis-classification, since corrected).
 
 ### A-4. ❗ Compaction beta header rejected on Bedrock Invoke API for all 3 models
 
@@ -231,90 +233,17 @@ from `bedrock-runtime`, and not from `ap-northeast-2`.
 
 ---
 
-## C. Spurious discrepancies (caused by our test bugs, now fixed)
-
-These were claimed as docs vs reality conflicts in earlier passes of this
-project. Investigation showed our test code was sending the wrong shape.
-After correcting the test, docs and reality agree.
-
-### C-1. ✅ Structured outputs "rejected on Bedrock"
-
-- Old test (`tests/unsupported/test_structured_outputs_response_format_rejected.py`,
-  removed) sent `response_format` (an OpenAI-style field name).
-  Anthropic's API does not have that field, so the rejection
-  `"response_format: Extra inputs are not permitted"` was an unknown-field
-  error, not a feature-rejection.
-- New test (`tests/messages/test_structured_outputs.py`) uses
-  `output_config.format` (current Anthropic GA parameter). Now confirms
-  the real per-model contract — see B-1.
-
-### C-2. ✅ Strict tool use "rejected on Bedrock"
-
-- Old test pinned blanket rejection on Bedrock, but the actual API
-  accepted `strict=True` on Opus 4.6 and Sonnet 4.6. Result: ❌ on those
-  models in older matrix runs, because the test was asserting the wrong
-  contract. The Opus 4.7 rejection it captured was real, but the test
-  generalized incorrectly.
-- New test (`tests/tools/test_strict_tool_use.py`) is per-model adaptive.
-  See B-2.
-
----
-
-## D. Aligned (no discrepancy)
-
-For completeness, the documentation feature table accurately predicts
-behavior for the rest of the surfaces this project measures:
-
-- **Prompt caching (5m)** — supported on Bedrock per docs and per
-  `tests/caching/test_on_messages.py` etc.
-- **Multi-breakpoint cache** — supported per `tests/caching/test_multi_breakpoint.py`.
-- **`extended-cache-ttl-2025-04-11` beta header** — Anthropic-only per
-  conventional reading; Bedrock returns "invalid beta flag"
-  (`tests/caching/test_extended_ttl_header_rejected.py`).
-- **Server-side tools** (web search / code execution / web fetch / memory
-  server tool / MCP connector / Files API / Batches / Computer use) —
-  docs list these as Anthropic-API-direct or claudeApiBeta, and our
-  `tests/unsupported/` directory confirms the rejection on Bedrock.
-- **Streaming**, **PDF**, **citations**, **vision**, **multi-turn**,
-  **1M context**, **adaptive thinking**, **interleaved thinking** — all
-  match docs.
-- **Bash / memory / text editor client-side tools** — match docs.
-
----
-
-## E. Opus 4.7 specific contract changes (docs do call these out, but the
-"feature available" tables can mislead)
-
-The general feature table does not split rows by model. These contract
-changes apply specifically to Opus 4.7 and would surprise a reader who
-assumed all Bedrock-listed features just work:
-
-| Surface | Docs note exists? | Our test |
-| --- | --- | --- |
-| Sampling parameters (`temperature` / `top_p` / `top_k`) deprecated → 400 | Implicit (release notes) | `tests/messages/test_sampling_deprecated.py` |
-| `thinking.type=enabled` rejected; use `adaptive` + `output_config.effort` | Docs flag adaptive as "recommended thinking mode for Opus 4.7" | `tests/thinking/test_enabled_with_effort.py` |
-| Assistant prefill (trailing assistant message) rejected — "must end with a user message" | Not prominently flagged | `tests/messages/test_assistant_prefill.py` |
-| `output_config.format` rejected on Invoke API | Implicit (Mantle requirement note in structured-outputs page) | `tests/messages/test_structured_outputs.py` |
-| `tools[].strict=true` rejected on Invoke API | Same | `tests/tools/test_strict_tool_use.py` |
-| ~~Computer use~~ rejected — **NOT Opus-4.7-specific**: rejection applies to all 3 models on Invoke. Moved framing to §A-2 | Docs `bedrockBeta` cell is Mantle-only | `tests/unsupported/test_computer_use_rejected.py` |
-| ~~Tool search~~ rejected — **NOT Opus-4.7-specific**: rejection applies to all 3 models on Invoke. Moved framing to §A-3 | Docs `bedrock` (GA) cell is Mantle-only | `tests/unsupported/test_tool_search_rejected.py` |
-
-These all track the broader theme: Opus 4.7 has narrower contract surface
-than older Bedrock models within the same Bedrock cell of the docs table.
-
----
-
-## F. Reproducing each row
+## C. Reproducing each row
 
 ```bash
 # Caching contract (incl. 1h finding A-1)
 python run_all.py --all-models --only caching
 
-# Structured outputs (B-1, C-1)
+# Structured outputs (B-1)
 python run_all.py --all-models --only-tests structured_outputs
 python scripts/probe_structured_outputs.py
 
-# Strict tool use (B-2, C-2)
+# Strict tool use (B-2)
 python run_all.py --all-models --only-tests strict_tool_use
 
 # Token counting (B-3)
@@ -335,7 +264,7 @@ All measurements reproducible with `AWS_BEARER_TOKEN_BEDROCK` set.
 
 ---
 
-## G. Last reviewed
+## D. Last reviewed
 
 - 2026-05-03 — initial cross-walk between docs and matrix.
 - 2026-05-04 — re-verified against `results/matrix-2026-05-04.{json,md}`.
@@ -343,9 +272,15 @@ All measurements reproducible with `AWS_BEARER_TOKEN_BEDROCK` set.
   header) after a fresh comparison against the
   `build-with-claude/overview` page on platform.claude.com showed all three
   features are listed for `bedrock` / `bedrockBeta` without endpoint
-  qualifier but reject on Invoke API for all 3 models. §E rows for
-  Computer use / Tool search updated with cross-references to A-2 / A-3
-  (rejection is universal, not Opus-4.7-specific).
+  qualifier but reject on Invoke API for all 3 models. Computer use /
+  Tool search were promoted from being framed as Opus-4.7-specific to
+  §A-2 / §A-3 (rejection is universal, not Opus-4.7-specific).
+- 2026-05-04 (later) — Sections C (spurious discrepancies), D (aligned),
+  E (Opus 4.7 specific contract changes) removed; surviving content is
+  available via `tests/messages/test_sampling_deprecated.py`,
+  `tests/thinking/test_enabled_with_effort.py`, and
+  `tests/messages/test_assistant_prefill.py` directly. Sections renumbered:
+  F → C (Reproducing each row), G → D (Last reviewed).
 - All inline numbers above were re-verified against `results/matrix.json`
   on the date stamped at the top of `results/latest.md`.
 
@@ -400,9 +335,9 @@ opt-in으로 작동합니다.
 | 실측 | `tests/unsupported/test_computer_use_rejected.py` — Opus 4.7 / Opus 4.6 / Sonnet 4.6 모두 400으로 `computer-use-2025-01-24`을 거부. `anthropic-beta: computer-use-2025-01-24` header는 `bedrock-runtime` Invoke API에서 honor되지 않음. 2026-05-04 검증. |
 
 overview의 `bedrockBeta` cell 때문에 이전 매트릭스 pass에서 본 row를
-Opus-4.7-specific으로 잘못 분류했습니다 (§E 참조). 실제: 거부는 측정한 3개
-모델 모두에 보편적으로 적용되며 Invoke API 한정. overview의 "Beta" tag는 본
-suite가 측정하지 않는 Mantle 엔드포인트에 적용되는 것입니다.
+Opus-4.7-specific으로 잘못 분류했습니다 (현재는 정정됨). 실제: 거부는 측정한
+3개 모델 모두에 보편적으로 적용되며 Invoke API 한정. overview의 "Beta" tag는
+본 suite가 측정하지 않는 Mantle 엔드포인트에 적용되는 것입니다.
 
 ### A-3. ❗ Tool search는 Bedrock Invoke API에서 3개 모델 모두 거부됨
 
@@ -414,7 +349,7 @@ suite가 측정하지 않는 Mantle 엔드포인트에 적용되는 것입니다
 A-2와 동일한 패턴 (Invoke 한정 보편 거부). overview가 GA로 표기 (Beta 아님)
 하기 때문에 A-2보다 더 강한 discrepancy입니다 — overview만 읽은 사용자는 GA
 path와 Invoke path가 다르다는 신호를 전혀 받지 못합니다. A-2와 마찬가지로
-§E에서 Opus-4.7-specific으로 잘못 분류되어 있던 row.
+이전에 Opus-4.7-specific으로 잘못 분류되어 있던 row (현재는 정정됨).
 
 ### A-4. ❗ Compaction beta header는 Bedrock Invoke API에서 3개 모델 모두 거부됨
 
@@ -547,86 +482,17 @@ pass에서 다룬다면 위 13 리전 중 하나의 `bedrock-mantle.{region}.api
 
 ---
 
-## C. 가짜 불일치 (자체 테스트 버그 — 수정됨)
-
-이전 pass에서 docs vs reality 충돌로 분류되었으나, 조사 결과 자체 테스트 코드가
-잘못된 shape을 보내고 있었음. 테스트 수정 후에는 docs와 reality가 일치합니다.
-
-### C-1. ✅ Structured outputs "Bedrock에서 거부됨"
-
-- 옛 테스트 (`tests/unsupported/test_structured_outputs_response_format_rejected.py`,
-  제거됨)는 `response_format` (OpenAI 스타일 필드명)을 보냈습니다. Anthropic
-  API에는 그 필드가 없으므로, 거부 `"response_format: Extra inputs are not
-  permitted"`은 unknown-field error였지 feature-rejection이 아니었습니다.
-- 새 테스트 (`tests/messages/test_structured_outputs.py`)는 `output_config.format`
-  (현재 Anthropic GA 파라미터)을 사용. 진짜 모델별 contract를 확인합니다 —
-  B-1 참조.
-
-### C-2. ✅ Strict tool use "Bedrock에서 거부됨"
-
-- 옛 테스트는 Bedrock에서의 일괄 거부를 단언했으나, 실제 API는 Opus 4.6과
-  Sonnet 4.6에서 `strict=True`를 수용했습니다. 결과: 옛 매트릭스 run에서 두
-  모델은 ❌. 테스트가 잘못된 contract를 단언하고 있었던 것. Opus 4.7의 거부는
-  진짜였지만 테스트가 잘못 일반화한 것이었습니다.
-- 새 테스트 (`tests/tools/test_strict_tool_use.py`)는 모델별 적응형. B-2 참조.
-
----
-
-## D. 일치 (불일치 없음)
-
-완전성을 위해, 본 프로젝트가 측정한 나머지 surface에 대해서는 docs feature
-표가 정확하게 동작을 예측합니다:
-
-- **Prompt caching (5m)** — docs와 `tests/caching/test_on_messages.py` 등에
-  따라 Bedrock에서 지원.
-- **Multi-breakpoint cache** — `tests/caching/test_multi_breakpoint.py` 기준
-  지원.
-- **`extended-cache-ttl-2025-04-11` beta header** — 통상적 read 기준
-  Anthropic-only; Bedrock은 "invalid beta flag" 반환
-  (`tests/caching/test_extended_ttl_header_rejected.py`).
-- **Server-side tools** (web search / code execution / web fetch / memory
-  server tool / MCP connector / Files API / Batches / Computer use) — docs는
-  이들을 Anthropic-API-direct 또는 claudeApiBeta로 표기, 우리
-  `tests/unsupported/` 디렉토리가 Bedrock에서의 거부를 확인.
-- **Streaming**, **PDF**, **citations**, **vision**, **multi-turn**,
-  **1M context**, **adaptive thinking**, **interleaved thinking** — 모두
-  docs와 일치.
-- **Bash / memory / text editor client-side tools** — docs와 일치.
-
----
-
-## E. Opus 4.7 specific contract changes (docs는 언급하지만 "feature available" 표가 오해 유발)
-
-일반 feature 표는 row를 모델별로 split하지 않습니다. 다음 contract 변경은
-Opus 4.7에 specific하게 적용되며, "Bedrock-listed feature는 그냥 다 동작한다"
-고 가정한 reader를 surprise하게 만들 것입니다:
-
-| Surface | Docs note 존재? | 우리 테스트 |
-| --- | --- | --- |
-| Sampling 파라미터 (`temperature` / `top_p` / `top_k`) deprecated → 400 | Implicit (release notes) | `tests/messages/test_sampling_deprecated.py` |
-| `thinking.type=enabled` 거부; `adaptive` + `output_config.effort` 사용 | Docs는 adaptive를 "Opus 4.7 권장 thinking mode"로 flag | `tests/thinking/test_enabled_with_effort.py` |
-| Assistant prefill (trailing assistant message) 거부 — "must end with a user message" | Prominently flag되지 않음 | `tests/messages/test_assistant_prefill.py` |
-| `output_config.format` Invoke API에서 거부 | Implicit (structured-outputs 페이지의 Mantle requirement note) | `tests/messages/test_structured_outputs.py` |
-| `tools[].strict=true` Invoke API에서 거부 | 동일 | `tests/tools/test_strict_tool_use.py` |
-| ~~Computer use~~ 거부 — **Opus-4.7-specific 아님**: 거부는 3개 모델 모두 Invoke에 적용. Framing은 §A-2로 이동 | Docs `bedrockBeta` cell은 Mantle-only | `tests/unsupported/test_computer_use_rejected.py` |
-| ~~Tool search~~ 거부 — **Opus-4.7-specific 아님**: 거부는 3개 모델 모두 Invoke에 적용. Framing은 §A-3로 이동 | Docs `bedrock` (GA) cell은 Mantle-only | `tests/unsupported/test_tool_search_rejected.py` |
-
-이 모두는 더 큰 theme을 따릅니다: Opus 4.7은 docs 표의 같은 Bedrock cell 내에서
-더 구버전 Bedrock 모델보다 narrower한 contract surface를 갖습니다.
-
----
-
-## F. 각 row 재현 명령
+## C. 각 row 재현 명령
 
 ```bash
 # Caching contract (1h finding A-1 포함)
 python run_all.py --all-models --only caching
 
-# Structured outputs (B-1, C-1)
+# Structured outputs (B-1)
 python run_all.py --all-models --only-tests structured_outputs
 python scripts/probe_structured_outputs.py
 
-# Strict tool use (B-2, C-2)
+# Strict tool use (B-2)
 python run_all.py --all-models --only-tests strict_tool_use
 
 # Token counting (B-3)
@@ -646,15 +512,21 @@ ANTHROPIC_BEDROCK_BASE_URL=http://127.0.0.1:9001 \
 
 ---
 
-## G. Last reviewed
+## D. Last reviewed
 
 - 2026-05-03 — docs와 매트릭스 사이의 초기 cross-walk.
 - 2026-05-04 — `results/matrix-2026-05-04.{json,md}` 기준 재검증.
   platform.claude.com의 `build-with-claude/overview` 페이지에 대한 fresh 비교
   결과, 3개 기능이 endpoint qualifier 없이 `bedrock` / `bedrockBeta`로 표기되어
   있으나 Invoke API에서 3개 모델 모두 거부됨이 드러나 §A-2 (Computer use),
-  §A-3 (Tool search), §A-4 (Compaction beta header)을 추가. §E의 Computer
-  use / Tool search row는 거부가 보편적 (Opus-4.7-specific 아님)이므로 §A-2
-  / §A-3로 cross-reference 갱신.
+  §A-3 (Tool search), §A-4 (Compaction beta header)을 추가. Computer use /
+  Tool search는 Opus-4.7-specific framing에서 §A-2 / §A-3로 promote (거부가
+  보편적, Opus-4.7-specific 아님).
+- 2026-05-04 (이후) — 섹션 C (spurious discrepancies), D (aligned),
+  E (Opus 4.7 specific contract changes) 제거; 해당 내용은
+  `tests/messages/test_sampling_deprecated.py`,
+  `tests/thinking/test_enabled_with_effort.py`,
+  `tests/messages/test_assistant_prefill.py` 등의 test 파일에서 직접 확인 가능.
+  섹션 재번호화: F → C (각 row 재현 명령), G → D (Last reviewed).
 - 위 모든 inline number는 `results/matrix.json`의 `results/latest.md` 상단에
   stamp된 날짜 기준 재검증됨.

@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `results/docs_vs_reality.md` §"Configuration notes" — strengthen the "Mantle is opt-in, never default" framing on the `CLAUDE_CODE_USE_MANTLE=1` bullet, explicitly noting that without the env var Claude Code on Bedrock always uses the Invoke API path
 - `results/docs_vs_reality.md` adds three new ❗ real-discrepancy entries (§A-2 Computer use, §A-3 Tool search, §A-4 Compaction beta header) — all reject on Bedrock Invoke API for all 3 models, contrary to the `build-with-claude/overview` page's `bedrockBeta` / `bedrock` (GA) cells. §E rows for computer use / tool search updated to cross-reference §A-2 / §A-3 since rejection is universal, not Opus-4.7-specific as previously framed. §G last-reviewed bumped to 2026-05-04
 
+### Removed
+- `results/docs_vs_reality.md` sections C (Spurious discrepancies — C-1 structured outputs, C-2 strict tool use), D (Aligned), and E (Opus 4.7 specific contract changes) removed. Sections F → C (Reproducing each row) and G → D (Last reviewed) renumbered. Dead `§E` references in §A-2 / §A-3 / §G content cleaned. Bash code comments in §F (now §C) updated to drop `(C-1)` / `(C-2)` references. `results/2026-05-04.md` §9.1 row 7 (Effort + Opus 4.7) updated to point to `tests/thinking/test_enabled_with_effort.py` directly instead of dead `§E` link.
+
 ## [0.6.0] - 2026-05-03
 
 ### Added
@@ -141,6 +144,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `results/claude_code_caching_findings.md` 파일 상단에 TL;DR 표 추가 — 동일한 env var 매트릭스를 mirror하여 wire-capture 실험 본문 전에 cheat sheet 노출
 - `results/docs_vs_reality.md` §"Configuration notes" — `CLAUDE_CODE_USE_MANTLE=1` 항목의 framing을 "Mantle은 explicit opt-in이며 default가 아님"으로 명시화, env var 없으면 Claude Code on Bedrock은 항상 Invoke API 경로를 사용한다는 점 추가 기재
 - `results/docs_vs_reality.md`에 ❗ 실측 불일치 항목 3개 신규 추가 (§A-2 Computer use, §A-3 Tool search, §A-4 Compaction beta header) — `build-with-claude/overview` 페이지가 `bedrockBeta` / `bedrock` (GA)로 표기하지만 Bedrock Invoke API에서 3개 모델 모두 거부됨을 명시. §E의 computer use / tool search 항목은 거부가 모든 모델에 적용되므로 (Opus-4.7-specific 아님) §A-2 / §A-3로 cross-reference 갱신. §G last-reviewed 일자를 2026-05-04로 갱신
+
+### Removed
+- `results/docs_vs_reality.md` 섹션 C (Spurious discrepancies — C-1 structured outputs, C-2 strict tool use), D (Aligned), E (Opus 4.7 specific contract changes) 제거. 섹션 F → C (각 row 재현 명령), G → D (Last reviewed) 재번호화. §A-2 / §A-3 / §G 본문의 dead `§E` 참조 정리. §F (현 §C)의 bash 주석에서 `(C-1)` / `(C-2)` 참조 제거. `results/2026-05-04.md` §9.1 row 7 (Effort + Opus 4.7)의 dead `§E` 링크를 `tests/thinking/test_enabled_with_effort.py` 직접 참조로 갱신.
 
 ## [0.6.0] - 2026-05-03
 
