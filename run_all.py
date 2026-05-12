@@ -477,42 +477,78 @@ def main() -> int:
         return 0
 
     started_utc = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    client = make_client()
     tokens = TokenAccumulator()
-    wrap_client_with_tracker(client, tokens)
     print(f"Started: {started_utc}")
     print(f"Region:  {REGION}")
 
-    if args.all_models:
-        print(f"Models:  {len(ALL_MODELS)} (matrix mode)")
-        for m in ALL_MODELS:
-            print(f"  - {m}")
-        matrix: dict[str, dict] = {}
-        per_model_tokens: dict[str, TokenAccumulator] = {}
-        for i, model_id in enumerate(ALL_MODELS, 1):
-            print(f"\n{'═' * 72}")
-            print(f"MODEL {i}/{len(ALL_MODELS)}: {model_id}")
-            print('═' * 72)
-            model_tokens = TokenAccumulator()
-            client_for_model = make_client()
-            wrap_client_with_tracker(client_for_model, model_tokens)
-            wrap_client_with_tracker(client_for_model, tokens)
-            payload = _run_one_model(client_for_model, model_id, args, started_utc)
-            if payload is not None:
-                matrix[model_id] = payload
-                per_model_tokens[model_id] = model_tokens
+    providers_list = _resolve_providers(args.providers)
 
-        # Aggregate totals
-        all_pass = sum(p["totals"]["passed"] for p in matrix.values())
-        all_total = sum(p["totals"]["total"] for p in matrix.values())
+    if args.all_models:
+        print(f"Providers: {providers_list}")
+        print(f"Aliases:   {ALL_MODELS}")
+        matrix: dict[str, dict[str, dict]] = {p: {} for p in providers_list}
+        per_run_tokens: dict[tuple[str, str], TokenAccumulator] = {}
+
+        run_idx = 0
+        total_runs = len(providers_list) * len(ALL_MODELS)
+        for provider in providers_list:
+            for alias in ALL_MODELS:
+                run_idx += 1
+                model_id = resolve_model(provider, alias)
+                print(f"\n{'═' * 72}")
+                print(f"RUN {run_idx}/{total_runs}: provider={provider}  "
+                      f"alias={alias}  model_id={model_id}")
+                print('═' * 72)
+                run_tokens = TokenAccumulator()
+                client_for_run = make_client(provider)
+                wrap_client_with_tracker(client_for_run, run_tokens)
+                wrap_client_with_tracker(client_for_run, tokens)
+                payload = _run_one_model(
+                    client_for_run, model_id, args, started_utc
+                )
+                if payload is not None:
+                    payload["provider"] = provider
+                    payload["alias"] = alias
+                    matrix[provider][alias] = payload
+                    per_run_tokens[(provider, alias)] = run_tokens
+
+        all_pass = sum(
+            p["totals"]["passed"]
+            for prov in matrix.values()
+            for p in prov.values()
+        )
+        all_total = sum(
+            p["totals"]["total"]
+            for prov in matrix.values()
+            for p in prov.values()
+        )
+        n_runs = sum(len(v) for v in matrix.values())
         print(f"\n{'═' * 72}")
-        print(f"MATRIX TOTAL: {all_pass}/{all_total} across {len(matrix)} models")
-        for model_id, t in per_model_tokens.items():
+        print(f"MATRIX TOTAL: {all_pass}/{all_total} across {n_runs} runs")
+
+        for (provider, alias), t in per_run_tokens.items():
             print()
-            print(f"-- per-model tokens: {model_id} --")
+            print(f"-- per-run tokens: {provider} / {alias} --")
             _print_token_summary(t)
+
+        for provider in providers_list:
+            print()
+            print(f"== provider-wide tokens: {provider} ==")
+            prov_tokens = TokenAccumulator()
+            for (p, _a), t in per_run_tokens.items():
+                if p == provider:
+                    s = t.summary()
+                    prov_tokens.calls += s["calls"]
+                    prov_tokens.input += s["input_tokens"]
+                    prov_tokens.output += s["output_tokens"]
+                    prov_tokens.cache_create_5m += s["ephemeral_5m_input_tokens"]
+                    prov_tokens.cache_create_1h += s["ephemeral_1h_input_tokens"]
+                    prov_tokens.cache_create_total += s["cache_creation_input_tokens"]
+                    prov_tokens.cache_read += s["cache_read_input_tokens"]
+            _print_token_summary(prov_tokens)
+
         print()
-        print("== matrix-wide tokens ==")
+        print("== matrix-wide tokens (all providers) ==")
         _print_token_summary(tokens)
 
         if not args.no_save:
@@ -525,8 +561,21 @@ def main() -> int:
         return 0 if all_pass == all_total else 1
 
     # Single-model run
-    print(f"Model:   {MODEL_ID}")
-    payload = _run_one_model(client, MODEL_ID, args, started_utc)
+    if len(providers_list) > 1:
+        print("ERROR: single-model run accepts at most one --providers value. "
+              "Use --all-models for multi-provider matrix.", file=sys.stderr)
+        return 2
+    single_provider = providers_list[0]
+    if single_provider == "bedrock":
+        single_model_id = MODEL_ID
+    else:
+        single_alias = ALL_MODELS[0]
+        single_model_id = resolve_model(single_provider, single_alias)
+    print(f"Provider: {single_provider}")
+    print(f"Model:    {single_model_id}")
+    client = make_client(single_provider)
+    wrap_client_with_tracker(client, tokens)
+    payload = _run_one_model(client, single_model_id, args, started_utc)
     if payload is None:
         return 0
 
