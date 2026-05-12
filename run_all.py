@@ -464,7 +464,7 @@ def _render_matrix_markdown(matrix: dict[str, dict[str, dict]]) -> str:
         for tname in sorted(test_categories):
             for alias in all_aliases:
                 kinds_for_pair = {
-                    p: kind_at.get((p, alias), {}).get(tname)
+                    p: kind_at.get((p, alias), {}).get(tname, "fail")
                     for p in providers_seen
                     if (p, alias) in kind_at
                 }
