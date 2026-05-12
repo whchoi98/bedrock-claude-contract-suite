@@ -65,6 +65,23 @@
 - **`docs/decisions/`** — Architecture Decision Records.
 - **`docs/runbooks/`** — 운영 절차서.
 
+## Providers
+
+본 스위트는 AWS 호스팅 Anthropic Claude 서비스 두 가지를 지원하며, `run_all.py`의
+`--providers` 플래그로 전환 가능합니다:
+
+| Provider | Endpoint | Auth | SDK class | Model ID example |
+| --- | --- | --- | --- | --- |
+| `bedrock` | `bedrock-runtime.{region}.amazonaws.com` | `AWS_BEARER_TOKEN_BEDROCK` (Bearer / ABSK) | `anthropic.AnthropicBedrock` | `global.anthropic.claude-opus-4-7` |
+| `cpaws` | `aws-external-anthropic.{region}.api.aws` | `ANTHROPIC_AWS_API_KEY` (x-api-key) + `anthropic-workspace-id` header | `anthropic.Anthropic` (custom base_url) | `claude-opus-4-7` |
+
+Mantle (`bedrock-mantle.{region}.api.aws`)은 의도적으로 범위 밖입니다; 추론은
+`results/docs_vs_reality.md`를 참조하세요.
+
+Model alias (`opus-4-7`, `opus-4-6`, `sonnet-4-6`)는 matrix 행의 단위입니다.
+구체적인 provider 특화 model ID는 실행 시간에 `providers.resolve_model(provider, alias)`에
+의해 `config.MODEL_ALIASES`로부터 해석됩니다.
+
 ## Full Architecture Diagram
 
 ```
@@ -242,6 +259,23 @@ producing a four-state matrix of 🟢 supported / ⛔ rejected /
   Bedrock's 5 API patterns and 3 endpoints.
 - **`docs/decisions/`** — Architecture Decision Records.
 - **`docs/runbooks/`** — operational runbooks.
+
+## Providers
+
+The suite supports two AWS-hosted Anthropic Claude surfaces, switchable
+via the `--providers` flag on `run_all.py`:
+
+| Provider | Endpoint | Auth | SDK class | Model ID example |
+| --- | --- | --- | --- | --- |
+| `bedrock` | `bedrock-runtime.{region}.amazonaws.com` | `AWS_BEARER_TOKEN_BEDROCK` (Bearer / ABSK) | `anthropic.AnthropicBedrock` | `global.anthropic.claude-opus-4-7` |
+| `cpaws` | `aws-external-anthropic.{region}.api.aws` | `ANTHROPIC_AWS_API_KEY` (x-api-key) + `anthropic-workspace-id` header | `anthropic.Anthropic` (custom base_url) | `claude-opus-4-7` |
+
+Mantle (`bedrock-mantle.{region}.api.aws`) is intentionally out of scope; see
+`results/docs_vs_reality.md` for the reasoning.
+
+Model aliases (`opus-4-7`, `opus-4-6`, `sonnet-4-6`) are the unit of matrix
+rows. The concrete provider-specific model ID is resolved at run time by
+`providers.resolve_model(provider, alias)` from `config.MODEL_ALIASES`.
 
 ## Full Architecture Diagram
 
