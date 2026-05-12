@@ -21,8 +21,8 @@ import sys
 import time
 from collections import defaultdict
 
-from client import make_client
-from config import ALL_MODELS, MODEL_ID, REGION
+from providers import make_client, resolve_model
+from config import ALL_MODELS, DEFAULT_PROVIDER, MODEL_ALIASES, MODEL_ID, PROVIDERS, REGION
 from tests._base import Result, execute, usage_breakdown
 
 PROJECT_ROOT = pathlib.Path(__file__).resolve().parent
@@ -352,6 +352,18 @@ def _classify_kind(t: dict) -> str:
     return _classify(t)[0]
 
 
+def _resolve_providers(args_providers: list[str] | None) -> list[str]:
+    """Return validated provider list; default to DEFAULT_PROVIDER if not set."""
+    if not args_providers:
+        return [DEFAULT_PROVIDER]
+    for p in args_providers:
+        if p not in PROVIDERS:
+            print(f"ERROR: unknown provider {p!r}; valid: {list(PROVIDERS)}",
+                  file=sys.stderr)
+            sys.exit(2)
+    return list(args_providers)
+
+
 def _icon_for(kind: str) -> str:
     return {"behavioral": "🟢", "rejected": "⛔", "mixed": "🟡", "fail": "❌"}.get(kind, "·")
 
@@ -455,6 +467,9 @@ def main() -> int:
                     help="Do not write results/ files.")
     ap.add_argument("--all-models", action="store_true",
                     help="Run tests for every model in config.ALL_MODELS and emit a matrix.")
+    ap.add_argument("--providers", nargs="*", default=None,
+                    help=f"Providers to run against. Default: {DEFAULT_PROVIDER}. "
+                         f"Valid: {list(PROVIDERS)}.")
     args = ap.parse_args()
 
     if args.list_json:
