@@ -246,6 +246,11 @@ print_cost_notice_matrix() {
     printf "${DIM}  ~1.24M total billable input tokens, ~6K output.${RESET}\n"
     printf "${DIM}  Approx USD: ~\$5.00 total (Opus 4.7 \$2.40 + Opus 4.6 \$1.60 + Sonnet 4.6 \$0.95).${RESET}\n"
     printf "${DIM}  Per-model + matrix-wide summary printed at end of run.${RESET}\n"
+    printf "${DIM}NOTE: Running matrix mode with both providers (--providers bedrock cpaws)${RESET}\n"
+    printf "${DIM}  charges BOTH bills:${RESET}\n"
+    printf "${DIM}    - Bedrock         → standard Bedrock invoke pricing${RESET}\n"
+    printf "${DIM}    - Claude Platform → AWS Marketplace subscription pricing${RESET}\n"
+    printf "${DIM}  A full matrix is ~2x the single-provider cost.${RESET}\n"
 }
 
 run_all_tests() {
@@ -259,6 +264,13 @@ run_all_tests() {
 
 run_matrix() {
     ensure_token
+    # CPaws credentials check — warns only; does not block.
+    if [ -z "${ANTHROPIC_AWS_API_KEY:-}" ] || [ -z "${ANTHROPIC_AWS_WORKSPACE_ID:-}" ]; then
+        printf "${YELLOW}WARNING: ANTHROPIC_AWS_API_KEY or ANTHROPIC_AWS_WORKSPACE_ID is not set.${RESET}\n"
+        printf "${YELLOW}         Claude Platform on AWS (CPaws) runs will fail if --providers cpaws is used.${RESET}\n"
+        printf "${YELLOW}         CPaws billing is via AWS Marketplace, separate from Bedrock.${RESET}\n"
+        echo
+    fi
     local models
     models=$(python3 -c "from config import ALL_MODELS; print('\n'.join(ALL_MODELS))")
     box "Run across ALL models (matrix)"
@@ -578,6 +590,12 @@ Token / cost notice (measured 2026-05-03 in ap-northeast-2):
   matrix run (3 models × 57 tests):  ~1.24M billable input, ~6K output
                                      ~\$5.00 USD total
   Token summary printed at the end of every run_all.py invocation.
+
+Provider billing (--providers bedrock cpaws):
+  Bedrock         charges standard Bedrock invoke pricing.
+  Claude Platform charges via AWS Marketplace subscription (separate bill).
+  Running both providers in matrix mode is ~2x the single-provider cost.
+  Requires: ANTHROPIC_AWS_API_KEY and ANTHROPIC_AWS_WORKSPACE_ID for CPaws.
 EOF
 }
 
