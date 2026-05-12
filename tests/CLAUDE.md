@@ -4,7 +4,10 @@
 
 The contract suite. Each subdirectory mirrors a category from Anthropic's
 "Build with Claude" documentation. Each `test_*.py` encodes one runtime
-contract that `run_all.py` exercises against `bedrock-runtime` Invoke API.
+contract that `run_all.py` exercises against one of the supported provider
+surfaces (currently `bedrock` and `cpaws`). Tests themselves are
+provider-agnostic — `run(client, model)` accepts whichever client/model the
+runner injects.
 
 ## Key Files
 

@@ -30,6 +30,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - `scripts/probe_token_counting.py` — drop module-level `TOKEN = os.environ["AWS_BEARER_TOKEN_BEDROCK"]` global; replace with a function-scoped `_bearer_token()` helper called inside `_raw_post()`. Mirrors `client.make_client()`, which never exposes the token to module scope. Shrinks the leak surface for tracebacks, debuggers, and `vars(module)` introspection on the only probe that builds raw `Authorization: Bearer …` headers (V2/V3 paths the SDK does not expose). Codified as a new rule in `scripts/CLAUDE.md` so future raw-HTTP probes inherit the pattern.
 
+## [0.7.0] - 2026-05-12 — Claude Platform on AWS provider integration
+
+### Added
+- `providers/` module abstracting Bedrock and Claude Platform on AWS as
+  interchangeable test targets (`bedrock`, `cpaws`).
+- `config.MODEL_ALIASES` mapping human aliases (`opus-4-7`, `opus-4-6`,
+  `sonnet-4-6`) to per-provider concrete model IDs.
+- `run_all.py --providers` flag (multi-value). Default behavior unchanged.
+- Matrix markdown now includes a "Cross-provider differences" section.
+- Env vars: `ANTHROPIC_AWS_API_KEY`, `ANTHROPIC_AWS_WORKSPACE_ID`,
+  `CPAWS_REGION` (optional).
+
+### Changed (breaking)
+- `results/matrix.{json,md}` schema is now 2D nested
+  (`{provider: {alias: payload}}`). Past snapshots (`matrix-2026-05-04.*`)
+  remain on disk unchanged.
+- `config.ALL_MODELS` is now a list of aliases, not concrete Bedrock IDs.
+
+### Documentation
+- `docs/architecture.md` gains a "Providers" section.
+- `tests/CLAUDE.md` endpoint scope updated to include CPaws.
+
 ## [0.6.0] - 2026-05-03
 
 ### Added
@@ -119,7 +141,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `fixtures/red_4x4.png` and `fixtures/sample.pdf` for vision and document tests
 - Add `docs/bedrock-api-endpoints-comparison.md` cataloging Bedrock's three service endpoints and five API patterns
 
-[Unreleased]: https://github.com/whchoi98/bedrock-claude-contract-suite/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/whchoi98/bedrock-claude-contract-suite/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/whchoi98/bedrock-claude-contract-suite/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/whchoi98/bedrock-claude-contract-suite/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/whchoi98/bedrock-claude-contract-suite/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/whchoi98/bedrock-claude-contract-suite/compare/v0.3.0...v0.4.0
@@ -153,6 +176,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 - `scripts/probe_token_counting.py` — 모듈 레벨 전역 `TOKEN = os.environ["AWS_BEARER_TOKEN_BEDROCK"]` 제거, 함수 스코프 `_bearer_token()` 헬퍼로 대체하여 `_raw_post()` 내부에서만 호출. `client.make_client()`가 토큰을 모듈 스코프에 노출하지 않는 패턴과 일치. SDK가 노출하지 않는 V2/V3 경로(raw `Authorization: Bearer …` 헤더 직접 구성) probe에서 traceback / 디버거 / `vars(module)` introspection 시점의 누출 면적을 축소. `scripts/CLAUDE.md` Rules에 동일 규칙 신설 — 이후 raw-HTTP probe가 첫 작성 시점부터 같은 패턴을 따르도록 강제.
+
+## [0.7.0] - 2026-05-12 — Claude Platform on AWS 프로바이더 통합
+
+### Added
+- `providers/` 모듈 추가 — Bedrock과 Claude Platform on AWS를 교체 가능한 테스트
+  대상(`bedrock`, `cpaws`)으로 추상화.
+- `config.MODEL_ALIASES` 추가 — 사람이 읽기 쉬운 별칭(`opus-4-7`, `opus-4-6`,
+  `sonnet-4-6`)을 프로바이더별 구체 모델 ID로 매핑.
+- `run_all.py --providers` 플래그(다중 값) 추가. 기본 동작은 변경 없음.
+- 매트릭스 마크다운에 "Cross-provider differences" 섹션 추가.
+- 환경 변수: `ANTHROPIC_AWS_API_KEY`, `ANTHROPIC_AWS_WORKSPACE_ID`,
+  `CPAWS_REGION` (선택).
+
+### Changed (breaking)
+- `results/matrix.{json,md}` 스키마가 2D 중첩 구조
+  (`{provider: {alias: payload}}`)로 변경. 기존 스냅샷(`matrix-2026-05-04.*`)은
+  디스크에 그대로 보존.
+- `config.ALL_MODELS`가 구체적인 Bedrock ID 목록 대신 별칭 목록으로 변경.
+
+### Documentation
+- `docs/architecture.md`에 "Providers" 섹션 추가.
+- `tests/CLAUDE.md` 엔드포인트 범위를 CPaws 포함으로 갱신.
 
 ## [0.6.0] - 2026-05-03
 
@@ -243,7 +288,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 비전 및 문서 테스트용 `fixtures/red_4x4.png`와 `fixtures/sample.pdf` 추가
 - Bedrock의 3개 서비스 엔드포인트와 5가지 API 패턴을 정리한 `docs/bedrock-api-endpoints-comparison.md` 추가
 
-[Unreleased]: https://github.com/whchoi98/bedrock-claude-contract-suite/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/whchoi98/bedrock-claude-contract-suite/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/whchoi98/bedrock-claude-contract-suite/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/whchoi98/bedrock-claude-contract-suite/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/whchoi98/bedrock-claude-contract-suite/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/whchoi98/bedrock-claude-contract-suite/compare/v0.3.0...v0.4.0

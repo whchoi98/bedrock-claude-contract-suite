@@ -18,7 +18,8 @@ showing per-model, per-test contract status.
 - **SDK**: `anthropic` (`AnthropicBedrock` client; `extra_body` / `extra_headers`
   for new-model fields not yet in the typed schema)
 - **HTTP utilities**: `httpx` (probes), `boto3` (SigV4 in selected probes)
-- **Auth**: AWS Bedrock API Key via `AWS_BEARER_TOKEN_BEDROCK` (Bearer)
+- **Auth (bedrock)**: AWS Bedrock API Key via `AWS_BEARER_TOKEN_BEDROCK` (Bearer)
+- **Auth (cpaws)**: Workspace API key via `ANTHROPIC_AWS_API_KEY` (x-api-key) + `ANTHROPIC_AWS_WORKSPACE_ID` (required header)
 - **No build system**: tests are plain `python3` modules, no packaging
 
 ## Project Structure
@@ -93,6 +94,12 @@ python3 run_all.py --only-tests cache_ttl_1h
 # 3-model matrix (writes results/matrix.{json,md})
 python3 run_all.py --all-models
 
+# Multi-provider matrix (bedrock × cpaws × 3 models = 6 runs)
+python3 run_all.py --providers bedrock cpaws --all-models
+
+# Single CPaws run (uses MODEL_ALIASES[0] = opus-4-7)
+python3 run_all.py --providers cpaws
+
 # Interactive launcher (with cost/token notice)
 ./verify.sh
 ./verify.sh all
@@ -106,8 +113,14 @@ python3 results/variability_probe.py
 python3 results/stable_prefix_probe.py
 ```
 
-Required env: `AWS_BEARER_TOKEN_BEDROCK`. Optional: `AWS_REGION`
-(default `ap-northeast-2`), `BEDROCK_MODEL_ID`.
+Required env:
+- `AWS_BEARER_TOKEN_BEDROCK` (for `--providers bedrock`, default)
+- `ANTHROPIC_AWS_API_KEY` and `ANTHROPIC_AWS_WORKSPACE_ID` (for `--providers cpaws`)
+
+Optional env:
+- `AWS_REGION` (default `ap-northeast-2`) — shared between providers
+- `CPAWS_REGION` — overrides `AWS_REGION` for CPaws only
+- `BEDROCK_MODEL_ID` — single-model run override for bedrock
 
 ---
 
