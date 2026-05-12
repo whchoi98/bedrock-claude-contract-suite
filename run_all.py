@@ -578,6 +578,7 @@ def main() -> int:
     payload = _run_one_model(client, single_model_id, args, started_utc)
     if payload is None:
         return 0
+    payload["provider"] = single_provider
 
     if args.json:
         print(json.dumps(payload, default=str, indent=2))
