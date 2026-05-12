@@ -21,6 +21,7 @@ from anthropic import AnthropicError
 
 from client import make_client
 from config import ALL_MODELS, REGION
+from providers import resolve_model
 
 INVOKE_BASE = f"https://bedrock-runtime.{REGION}.amazonaws.com"
 MSG = [{"role": "user", "content": "How many tokens does this message contain?"}]
@@ -80,10 +81,11 @@ def probe_model(client, model: str) -> dict:
 def main() -> int:
     client = make_client()
     results: dict = {"region": REGION, "by_model": {}}
-    for model in ALL_MODELS:
-        print(f"\n=== {model} ===")
-        per_model = probe_model(client, model)
-        results["by_model"][model] = per_model
+    for alias in ALL_MODELS:
+        model_id = resolve_model("bedrock", alias)
+        print(f"\n=== {alias} ===")
+        per_model = probe_model(client, model_id)
+        results["by_model"][alias] = per_model
         for label, r in [("V1 SDK→Invoke", per_model["V1_sdk_invoke"]),
                          ("V2 raw /model/{id}/count-tokens", per_model["V2_raw_invoke_path"]),
                          ("V3 raw /v1/messages/count_tokens", per_model["V3_raw_anthropic_path"])]:

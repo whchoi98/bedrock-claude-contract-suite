@@ -22,6 +22,7 @@ from anthropic import APIStatusError, BadRequestError
 
 from client import make_client
 from config import ALL_MODELS, REGION
+from providers import resolve_model
 from tests._base import text_of
 from tests.messages.test_structured_outputs import SCHEMA
 
@@ -73,10 +74,11 @@ def probe_model(client, model: str) -> list[dict]:
 def main() -> int:
     client = make_client()
     payload: dict = {"region": REGION, "by_model": {}}
-    for model in ALL_MODELS:
-        print(f"\n=== {model} ===")
-        results = probe_model(client, model)
-        payload["by_model"][model] = results
+    for alias in ALL_MODELS:
+        model_id = resolve_model("bedrock", alias)
+        print(f"\n=== {alias} ===")
+        results = probe_model(client, model_id)
+        payload["by_model"][alias] = results
         for r in results:
             mark = "OK " if r["accepted"] else "RJ "
             print(f"  {mark} {r['variant']:<40s} {r['detail'][:130]}")
