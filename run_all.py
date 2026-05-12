@@ -368,89 +368,166 @@ def _icon_for(kind: str) -> str:
     return {"behavioral": "🟢", "rejected": "⛔", "mixed": "🟡", "fail": "❌"}.get(kind, "·")
 
 
-def _render_matrix_markdown(matrix: dict[str, dict]) -> str:
-    """Render a multi-model matrix payload {model_id: payload}."""
+def _render_matrix_markdown(matrix: dict[str, dict[str, dict]]) -> str:
+    """Render a 2D matrix payload {provider: {alias: payload}}.
+
+    Layout:
+      1. Per-provider × per-model totals (single overview table)
+      2. Test × Model matrix per provider (sub-section per provider)
+      3. Cross-provider differences (same (test, alias), provider labels differ)
+      4. Inter-model differences per provider
+    """
     lines: list[str] = []
-    lines.append("# Bedrock × Anthropic API — multi-model matrix")
-    lines.append("")
-    if matrix:
-        first = next(iter(matrix.values()))
-        lines.append(f"- **Region**: `{first['region']}`")
-        lines.append(f"- **Started (UTC)**: {first['started_utc']}")
-    lines.append(f"- **Models**: {len(matrix)}")
+    lines.append("# Bedrock × Anthropic API — provider × model matrix")
     lines.append("")
 
-    # Per-model totals
-    lines.append("## Per-model totals")
+    flat_runs = [
+        (provider, alias, payload)
+        for provider, by_alias in matrix.items()
+        for alias, payload in by_alias.items()
+    ]
+    if not flat_runs:
+        lines.append("(empty matrix)")
+        return "\n".join(lines)
+
+    first = flat_runs[0][2]
+    lines.append(f"- **Region**: `{first['region']}`")
+    lines.append(f"- **Started (UTC)**: {first['started_utc']}")
+    lines.append(f"- **Providers**: {list(matrix.keys())}")
+    lines.append(f"- **Total runs**: {len(flat_runs)}")
     lines.append("")
-    lines.append("| Model | 🟢 Supported | ⛔ Rejected | 🟡 Mixed | ❌ Fail | Total |")
-    lines.append("| --- | ---: | ---: | ---: | ---: | ---: |")
-    for model_id, payload in matrix.items():
+
+    # Section 1: Per-provider × per-model totals.
+    lines.append("## Per-provider × per-model totals")
+    lines.append("")
+    lines.append("| Provider | Model | 🟢 Supported | ⛔ Rejected | 🟡 Mixed | ❌ Fail | Total |")
+    lines.append("| --- | --- | ---: | ---: | ---: | ---: | ---: |")
+    for provider, alias, payload in flat_runs:
         counts = {"behavioral": 0, "rejected": 0, "mixed": 0, "fail": 0}
         for c in payload["categories"].values():
             for t in c["tests"]:
                 counts[_classify_kind(t)] += 1
         total = payload["totals"]["total"]
-        lines.append(f"| `{model_id}` | {counts['behavioral']} | "
-                     f"{counts['rejected']} | {counts['mixed']} | "
-                     f"{counts['fail']} | {total} |")
+        lines.append(
+            f"| `{provider}` | `{alias}` | {counts['behavioral']} | "
+            f"{counts['rejected']} | {counts['mixed']} | "
+            f"{counts['fail']} | {total} |"
+        )
     lines.append("")
 
-    # Build a flat lookup: {test_name: {model_id: kind}}
-    # Use the union of test names across all models.
-    test_kinds: dict[str, dict[str, str]] = {}
+    # Build a lookup keyed by (provider, alias) and (test_name, alias).
+    # kind_at[(provider, alias)][test_name] = classification kind
+    kind_at: dict[tuple[str, str], dict[str, str]] = {}
     test_categories: dict[str, str] = {}
-    for model_id, payload in matrix.items():
+    for provider, alias, payload in flat_runs:
+        bucket = kind_at.setdefault((provider, alias), {})
         for cat, c in payload["categories"].items():
             for t in c["tests"]:
-                test_kinds.setdefault(t["name"], {})[model_id] = _classify_kind(t)
+                bucket[t["name"]] = _classify_kind(t)
                 test_categories[t["name"]] = cat
 
-    # Test × Model matrix grouped by category
+    # Section 2: Test × Model matrix per provider.
     lines.append("## Test × Model matrix")
     lines.append("")
-    by_cat: dict[str, list[str]] = defaultdict(list)
-    for tname, cat in test_categories.items():
-        by_cat[cat].append(tname)
-
-    model_order = list(matrix.keys())
-    for cat in sorted(by_cat.keys()):
-        lines.append(f"### `{cat}`")
+    for provider, by_alias in matrix.items():
+        lines.append(f"### `{provider}`")
         lines.append("")
-        header = "| Test | " + " | ".join(f"`{m}`" for m in model_order) + " |"
-        sep = "| --- | " + " | ".join(":---:" for _ in model_order) + " |"
-        lines.append(header)
-        lines.append(sep)
-        for tname in sorted(by_cat[cat]):
-            row = [f"`{tname}`"]
-            for m in model_order:
-                kind = test_kinds[tname].get(m, "fail")
-                row.append(_icon_for(kind))
-            lines.append("| " + " | ".join(row) + " |")
-        lines.append("")
+        aliases = list(by_alias.keys())
+        by_cat: dict[str, list[str]] = defaultdict(list)
+        for tname, cat in test_categories.items():
+            by_cat[cat].append(tname)
+        for cat in sorted(by_cat.keys()):
+            lines.append(f"#### `{cat}`")
+            lines.append("")
+            header = "| Test | " + " | ".join(f"`{a}`" for a in aliases) + " |"
+            sep = "| --- | " + " | ".join(":---:" for _ in aliases) + " |"
+            lines.append(header)
+            lines.append(sep)
+            for tname in sorted(by_cat[cat]):
+                row = [f"`{tname}`"]
+                for a in aliases:
+                    k = kind_at.get((provider, a), {}).get(tname, "fail")
+                    row.append(_icon_for(k))
+                lines.append("| " + " | ".join(row) + " |")
+            lines.append("")
 
-    # Inter-model differences
-    lines.append("## Inter-model differences")
+    # Section 3: Cross-provider differences.
+    lines.append("## Cross-provider differences")
     lines.append("")
-    diffs = []
-    for tname, kinds in test_kinds.items():
-        present_kinds = set(kinds.values())
-        if len(present_kinds) > 1:
-            diffs.append((tname, kinds))
-    if not diffs:
-        lines.append("All tests agree across models.")
+    providers_seen = list(matrix.keys())
+    if len(providers_seen) < 2:
+        lines.append("(only one provider in this run — no cross-provider diff)")
+        lines.append("")
     else:
+        all_aliases = sorted({alias for by_alias in matrix.values() for alias in by_alias})
+        diffs: list[tuple[str, str, dict[str, str]]] = []
+        for tname in sorted(test_categories):
+            for alias in all_aliases:
+                kinds_for_pair = {
+                    p: kind_at.get((p, alias), {}).get(tname)
+                    for p in providers_seen
+                    if (p, alias) in kind_at
+                }
+                if len(kinds_for_pair) < 2:
+                    continue
+                if len(set(kinds_for_pair.values())) > 1:
+                    diffs.append((tname, alias, kinds_for_pair))
+        if not diffs:
+            lines.append("All (test, alias) pairs agree across providers.")
+            lines.append("")
+        else:
+            lines.append(
+                f"{len(diffs)} (test, alias) pair(s) where providers disagree:"
+            )
+            lines.append("")
+            header = "| Test | Alias | " + " | ".join(f"`{p}`" for p in providers_seen) + " |"
+            sep = "| --- | --- | " + " | ".join(":---:" for _ in providers_seen) + " |"
+            lines.append(header)
+            lines.append(sep)
+            for tname, alias, kinds in diffs:
+                row = [f"`{tname}`", f"`{alias}`"]
+                for p in providers_seen:
+                    k = kinds.get(p, "fail")
+                    row.append(_icon_for(k) if k else "·")
+                lines.append("| " + " | ".join(row) + " |")
+            lines.append("")
+
+    # Section 4: Inter-model differences per provider.
+    lines.append("## Inter-model differences (within each provider)")
+    lines.append("")
+    for provider, by_alias in matrix.items():
+        aliases = list(by_alias.keys())
+        if len(aliases) < 2:
+            continue
+        lines.append(f"### `{provider}`")
+        lines.append("")
+        per_test: dict[str, dict[str, str]] = {}
+        for alias in aliases:
+            for tname, k in kind_at.get((provider, alias), {}).items():
+                per_test.setdefault(tname, {})[alias] = k
+        diffs = [
+            (tname, kinds)
+            for tname, kinds in per_test.items()
+            if len(set(kinds.values())) > 1
+        ]
+        if not diffs:
+            lines.append("All tests agree across models.")
+            lines.append("")
+            continue
         lines.append(f"{len(diffs)} test(s) where models disagree:")
         lines.append("")
-        lines.append("| Test | " + " | ".join(f"`{m}`" for m in model_order) + " |")
-        lines.append("| --- | " + " | ".join(":---:" for _ in model_order) + " |")
+        header = "| Test | " + " | ".join(f"`{a}`" for a in aliases) + " |"
+        sep = "| --- | " + " | ".join(":---:" for _ in aliases) + " |"
+        lines.append(header)
+        lines.append(sep)
         for tname, kinds in sorted(diffs):
             row = [f"`{tname}`"]
-            for m in model_order:
-                k = kinds.get(m, "fail")
+            for a in aliases:
+                k = kinds.get(a, "fail")
                 row.append(f"{_icon_for(k)} {k}")
             lines.append("| " + " | ".join(row) + " |")
-    lines.append("")
+        lines.append("")
+
     return "\n".join(lines)
 
 
