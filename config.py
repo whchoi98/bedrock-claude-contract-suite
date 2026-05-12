@@ -44,14 +44,17 @@ BETA_1M_CONTEXT = "context-1m-2025-08-07"
 BETA_PDF_DOCUMENTS = "pdfs-2024-09-25"
 BETA_INTERLEAVED_THINKING = "interleaved-thinking-2025-05-14"
 
-# Features known to be Anthropic-direct only (skipped on Bedrock).
+# Features known to be Anthropic-direct only (rejected on Bedrock, accepted on CPaws).
+# Empirically verified 2026-05-12 against `claude-opus-4-7` on both providers.
+# See `results/cpaws_findings.md` for the per-feature cross-provider matrix.
 BEDROCK_UNSUPPORTED = {
     "files_api",
     "message_batches",
     "admin_api",
     "server_tool_web_search",
+    "server_tool_web_fetch",
     "server_tool_code_execution",
     "server_tool_memory",
-    "computer_use",
+    "computer_use",                  # Note: also rejected on CPaws — Anthropic-level gating
     "mcp_connector",
 }
