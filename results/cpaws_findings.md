@@ -205,7 +205,7 @@ short-running matrices but compounds for longer sessions.
 - **CPaws 인증**: workspace API key (`ANTHROPIC_AWS_API_KEY` +
   `anthropic-workspace-id` 헤더)
 - **Bedrock baseline**: `results/matrix-2026-05-04.md` (3-모델 매트릭스)
-- **CPaws 풀 스윗**: `results/latest.md` —
+- **CPaws 전체 스위트**: `results/latest.md` —
   `python3 run_all.py --providers cpaws` 2026-05-12T22:31:58Z 실행 결과.
   **51 / 57 통과**.
 
@@ -327,16 +327,16 @@ delta_count: 1
 
 ## §E. CPaws 토큰 비용 관찰 (2026-05-12 실행)
 
-`claude-opus-4-7` 풀 57 테스트 스윗:
+`claude-opus-4-7` 전체 57개 테스트 스위트:
 
-- 벽시계 시간: 187 초.
+- 총 소요 시간: 187 초.
 - API 호출: 61 회.
 - Input 토큰: 284,650.
 - Output 토큰: 2,479.
 - Cache create (5m): 99,426.
 - Cache create (1h): 27,041 (§C.1 에도 불구 작동).
 - Cache read: 125,944.
-- 청구 input 합산: 537,061 토큰.
+- 청구 가능한 input 총합: 537,061 토큰.
 
 1h 캐시 *쓰기* (27k) 는 성공하고 청구됨; §C.1 의 *재현 실패* 로
 같은 run 의 후속 테스트가 캐시 적중 대신 재쓰기. 짧은 매트릭스는
