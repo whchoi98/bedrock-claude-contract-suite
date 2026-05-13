@@ -1,5 +1,5 @@
 {
-  "started_utc": "2026-05-12T23:00:13Z",
+  "started_utc": "2026-05-13T02:08:10Z",
   "region": "ap-northeast-2",
   "model": "claude-opus-4-7",
   "totals": {
@@ -15,7 +15,7 @@
           "name": "extended_ttl_beta_header_rejected_on_bedrock",
           "description": "anthropic-beta: extended-cache-ttl-2025-04-11 is rejected on Bedrock",
           "ok": true,
-          "elapsed_s": 2.408,
+          "elapsed_s": 2.146,
           "info": {
             "contract": "accepted",
             "note": "beta header now accepted \u2014 update README findings"
@@ -26,7 +26,7 @@
           "name": "cache_multi_breakpoint",
           "description": "system breakpoint AND user message breakpoint both register",
           "ok": true,
-          "elapsed_s": 4.964,
+          "elapsed_s": 5.026,
           "info": {
             "first": {
               "input": 21,
@@ -46,7 +46,7 @@
           "name": "cache_on_messages",
           "description": "cache_control on a user content block triggers cache create/read",
           "ok": true,
-          "elapsed_s": 4.95,
+          "elapsed_s": 5.968,
           "info": {
             "first": {
               "input": 25,
@@ -66,7 +66,7 @@
           "name": "prompt_caching",
           "description": "cache_control marks a system prefix; 2nd call shows cache_read_input_tokens",
           "ok": true,
-          "elapsed_s": 5.649,
+          "elapsed_s": 4.75,
           "info": {
             "first_call_usage": {
               "input_tokens": 22,
@@ -88,7 +88,7 @@
           "name": "cache_on_tools",
           "description": "cache_control attached to last tool definition triggers cache use",
           "ok": true,
-          "elapsed_s": 4.884,
+          "elapsed_s": 5.027,
           "info": {
             "first": {
               "input": 450,
@@ -108,7 +108,7 @@
           "name": "cache_savings_measured",
           "description": "cached call: input_tokens collapses; cache_read carries the prefix bulk",
           "ok": true,
-          "elapsed_s": 4.428,
+          "elapsed_s": 4.948,
           "info": {
             "first": {
               "input": 14,
@@ -130,24 +130,24 @@
           "name": "cache_ttl_1h",
           "description": "ttl='1h' on cold cache: fresh write lands in ephemeral_1h_input_tokens (not 5m); second call reads it back",
           "ok": false,
-          "elapsed_s": 4.3,
+          "elapsed_s": 5.215,
           "info": {
             "contract": "supported",
             "first": {
               "input": 14,
-              "create_total": 15023,
+              "create_total": 15024,
               "read_total": 0,
               "create_5m": 0,
-              "create_1h": 15023
+              "create_1h": 15024
             },
             "second": {
               "input": 6,
               "create_total": 8,
-              "read_total": 15023,
+              "read_total": 15024,
               "create_5m": 8,
               "create_1h": 0
             },
-            "salt": "04703f7901d1125d",
+            "salt": "6678ab93c73c908a",
             "evidence": {
               "cold_start_verified": true,
               "one_hour_bucket_populated_on_fresh_write": true,
@@ -161,24 +161,24 @@
           "name": "cache_ttl_mixed_5m_and_1h",
           "description": "5m + 1h in same request on cold cache: BOTH ephemeral_1h and ephemeral_5m populate on the fresh write; second call reads the sum",
           "ok": true,
-          "elapsed_s": 5.735,
+          "elapsed_s": 4.923,
           "info": {
             "contract": "supported",
             "first": {
               "input": 19,
-              "create_total": 21035,
+              "create_total": 21039,
               "read_total": 0,
-              "create_5m": 9018,
-              "create_1h": 12017
+              "create_5m": 9020,
+              "create_1h": 12019
             },
             "second": {
               "input": 6,
               "create_total": 13,
-              "read_total": 21035,
+              "read_total": 21039,
               "create_5m": 13,
               "create_1h": 0
             },
-            "salt": "4f549d066d3de44c",
+            "salt": "e3068b0fcc5aa755",
             "evidence": {
               "cold_start_verified": true,
               "one_hour_bucket_populated_on_fresh_write": true,
@@ -198,9 +198,9 @@
           "name": "citations_search_result_correct_source",
           "description": "answer mentions Mei Tanaka AND citation points at the team source",
           "ok": true,
-          "elapsed_s": 1.946,
+          "elapsed_s": 1.801,
           "info": {
-            "answer_preview": "Mei Tanaka led Project Aurora as the lead engineer.",
+            "answer_preview": "The lead engineer of Project Aurora was Mei Tanaka.",
             "cited_sources": [
               "https://example.com/aurora-team"
             ],
@@ -213,7 +213,7 @@
           "name": "citations",
           "description": "document citations={enabled:true} produces citation entries on text blocks",
           "ok": true,
-          "elapsed_s": 3.306,
+          "elapsed_s": 2.628,
           "info": {
             "cited_blocks": [
               {
@@ -249,7 +249,7 @@
           "name": "context_1m_needle_in_haystack",
           "description": "needle (unique fact) is recoverable from a >200K-token document",
           "ok": true,
-          "elapsed_s": 6.976,
+          "elapsed_s": 8.22,
           "info": {
             "input_tokens": 233112,
             "output_tokens": 28,
@@ -264,7 +264,7 @@
           "name": "context_1m_beta",
           "description": "anthropic-beta: context-1m-2025-08-07 accepted; long input round-trips",
           "ok": true,
-          "elapsed_s": 3.755,
+          "elapsed_s": 2.372,
           "info": {
             "input_tokens": 17383,
             "stop_reason": "end_turn",
@@ -283,7 +283,7 @@
           "name": "pdf_document",
           "description": "document content block (PDF base64) is parsed and answerable",
           "ok": true,
-          "elapsed_s": 1.688,
+          "elapsed_s": 1.747,
           "info": {
             "reply": "BEDROCK_OPUS_PDF_OK",
             "stop_reason": "end_turn"
@@ -294,7 +294,7 @@
           "name": "pdf_with_citations",
           "description": "PDF base64 + citations:{enabled:true} returns at least one citation",
           "ok": true,
-          "elapsed_s": 2.15,
+          "elapsed_s": 2.494,
           "info": {
             "cited_blocks": [
               {
@@ -316,7 +316,7 @@
           "name": "assistant_prefill",
           "description": "prefill works (legacy) OR is cleanly rejected (Opus 4.7+ contract)",
           "ok": true,
-          "elapsed_s": 0.38,
+          "elapsed_s": 0.614,
           "info": {
             "contract": "rejected",
             "message": "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This model does not support assistant message prefill. The conversation must end with a user message.'}, 'req"
@@ -327,7 +327,7 @@
           "name": "context_editing_works",
           "description": "context-management beta header + extra_body.context_management round-trips",
           "ok": true,
-          "elapsed_s": 2.007,
+          "elapsed_s": 2.024,
           "info": {
             "tool_called": "echo",
             "stop_reason": "tool_use"
@@ -338,7 +338,7 @@
           "name": "basic",
           "description": "messages.create round-trip with one user turn",
           "ok": true,
-          "elapsed_s": 2.834,
+          "elapsed_s": 1.841,
           "info": {
             "stop_reason": "end_turn",
             "input_tokens": 21,
@@ -351,7 +351,7 @@
           "name": "max_tokens_truncation",
           "description": "very small max_tokens forces stop_reason=max_tokens",
           "ok": true,
-          "elapsed_s": 1.59,
+          "elapsed_s": 1.463,
           "info": {
             "stop_reason": "max_tokens",
             "output_tokens": 4
@@ -362,7 +362,7 @@
           "name": "metadata_user_id",
           "description": "metadata={'user_id': ...} is accepted without 4xx",
           "ok": true,
-          "elapsed_s": 2.048,
+          "elapsed_s": 2.064,
           "info": {
             "reply": "metadata-ok",
             "stop_reason": "end_turn"
@@ -373,7 +373,7 @@
           "name": "multi_turn",
           "description": "assistant uses prior-turn context to answer follow-up",
           "ok": true,
-          "elapsed_s": 1.708,
+          "elapsed_s": 1.84,
           "info": {
             "reply": "Daisy"
           },
@@ -383,7 +383,7 @@
           "name": "sampling_params_deprecated",
           "description": "temperature/top_p/top_k: rejected with deprecation on Opus 4.7; accepted on Opus 4.6 / Sonnet 4.6 (legacy)",
           "ok": true,
-          "elapsed_s": 1.921,
+          "elapsed_s": 1.722,
           "info": {
             "contract": "rejected_deprecated",
             "statuses": {
@@ -393,8 +393,8 @@
             },
             "details": {
               "temperature": "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': '`temperature` is deprecated for this model.'}, 'request_id': 'req_011",
-              "top_p": "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': '`top_p` is deprecated for this model.'}, 'request_id': 'req_011CayWMh",
-              "top_k": "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': '`top_k` is deprecated for this model.'}, 'request_id': 'req_011CayWMh"
+              "top_p": "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': '`top_p` is deprecated for this model.'}, 'request_id': 'req_011Caykgx",
+              "top_k": "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': '`top_k` is deprecated for this model.'}, 'request_id': 'req_011Caykgx"
             },
             "bare_reply": "sampled"
           },
@@ -404,7 +404,7 @@
           "name": "service_tier",
           "description": "service_tier='auto' is accepted, ignored, or cleanly rejected on Bedrock",
           "ok": true,
-          "elapsed_s": 1.92,
+          "elapsed_s": 1.808,
           "info": {
             "reply": "tier-ok",
             "stop_reason": "end_turn"
@@ -415,7 +415,7 @@
           "name": "stop_sequences",
           "description": "stop_sequences trigger stop_reason=stop_sequence",
           "ok": true,
-          "elapsed_s": 2.139,
+          "elapsed_s": 2.577,
           "info": {
             "stop_reason": "stop_sequence",
             "stop_sequence": "END",
@@ -427,7 +427,7 @@
           "name": "structured_outputs",
           "description": "output_config.format=json_schema accepted on supported models; rejected on Opus 4.7 via Invoke API (Mantle required)",
           "ok": true,
-          "elapsed_s": 2.897,
+          "elapsed_s": 2.41,
           "info": {
             "contract": "supported",
             "parsed": {
@@ -441,7 +441,7 @@
           "name": "system_prompt",
           "description": "system prompt steers reply style (string + blocks form)",
           "ok": true,
-          "elapsed_s": 3.538,
+          "elapsed_s": 4.052,
           "info": {
             "upper_reply": "HELLO!",
             "lower_reply": "hello"
@@ -458,9 +458,9 @@
           "name": "multilingual_japanese",
           "description": "Japanese prompt yields a reply with Japanese script",
           "ok": true,
-          "elapsed_s": 2.186,
+          "elapsed_s": 1.809,
           "info": {
-            "reply": "\u3053\u3093\u306b\u3061\u306f\u3001\u306f\u3058\u3081\u307e\u3057\u3066\u3002"
+            "reply": "\u3053\u3093\u306b\u3061\u306f\u3001\u304a\u5143\u6c17\u3067\u3059\u304b\uff1f"
           },
           "error": null
         },
@@ -468,7 +468,7 @@
           "name": "multilingual_korean",
           "description": "Korean prompt yields a reply containing Hangul characters",
           "ok": true,
-          "elapsed_s": 2.157,
+          "elapsed_s": 3.48,
           "info": {
             "reply": "\uc548\ub155\ud558\uc138\uc694! \ub9cc\ub098\uc11c \ubc18\uac11\uc2b5\ub2c8\ub2e4. \ud83d\ude0a"
           },
@@ -484,7 +484,7 @@
           "name": "event_schema",
           "description": "stream emits message_start, content_block_start/stop, message_stop",
           "ok": true,
-          "elapsed_s": 1.79,
+          "elapsed_s": 1.989,
           "info": {
             "types": [
               "content_block_delta",
@@ -503,7 +503,7 @@
           "name": "fine_grained_tool_streaming_beta",
           "description": "anthropic-beta: fine-grained-tool-streaming-2025-05-14 accepted; deltas observed",
           "ok": true,
-          "elapsed_s": 2.82,
+          "elapsed_s": 2.559,
           "info": {
             "input_json_delta_seen": true,
             "fragments": 4,
@@ -518,7 +518,7 @@
           "name": "streaming",
           "description": "messages.stream() yields incremental text deltas",
           "ok": true,
-          "elapsed_s": 2.232,
+          "elapsed_s": 1.929,
           "info": {
             "delta_count": 2,
             "event_kinds": [
@@ -539,7 +539,7 @@
           "name": "streaming_thinking",
           "description": "stream with thinking yields thinking_delta or signature_delta events",
           "ok": true,
-          "elapsed_s": 2.727,
+          "elapsed_s": 2.317,
           "info": {
             "delta_kinds": [
               "text_delta"
@@ -558,10 +558,10 @@
           "name": "streaming_tool_use",
           "description": "stream emits input_json_delta events that reconstruct tool input JSON",
           "ok": true,
-          "elapsed_s": 2.786,
+          "elapsed_s": 2.242,
           "info": {
             "input_json_delta_seen": true,
-            "fragments": 6,
+            "fragments": 7,
             "reconstructed_preview": "{\"status\": \"ready\", \"level\": 1}",
             "tool_input": {
               "status": "ready",
@@ -580,7 +580,7 @@
           "name": "extended_thinking",
           "description": "thinking.type=adaptive + output_config.effort accepted; correct answer",
           "ok": true,
-          "elapsed_s": 1.81,
+          "elapsed_s": 1.608,
           "info": {
             "blocks": [
               "text"
@@ -595,7 +595,7 @@
           "name": "thinking_disabled",
           "description": "thinking={type:disabled} returns text-only response",
           "ok": true,
-          "elapsed_s": 1.72,
+          "elapsed_s": 1.657,
           "info": {
             "blocks": [
               "text"
@@ -608,7 +608,7 @@
           "name": "thinking_enabled_with_effort",
           "description": "thinking.type=enabled supported (legacy) or cleanly redirected (Opus 4.7+)",
           "ok": true,
-          "elapsed_s": 0.544,
+          "elapsed_s": 0.665,
           "info": {
             "contract": "rejected_use_adaptive",
             "message": "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': '\"thinking.type.enabled\" is not supported for this model. Use \"thinking.type.adaptive\" and \"output_config.effort\" to control think"
@@ -619,7 +619,7 @@
           "name": "interleaved_thinking_between_tools",
           "description": "thinking blocks appear after tool_result (interleaved with tool calls)",
           "ok": true,
-          "elapsed_s": 7.051,
+          "elapsed_s": 7.265,
           "info": {
             "r1_blocks": [
               "thinking",
@@ -630,7 +630,7 @@
             ],
             "coexisted_in_r1": true,
             "thinking_after_tool": false,
-            "final_preview": "The result of (123 + 456) + 789 is **1368**.\n\nHere's the step-by-step breakdown:"
+            "final_preview": "The result of (123 + 456) + 789 is **1368**.\n\nStep-by-step:\n- First call: 123 + "
           },
           "error": null
         },
@@ -638,7 +638,7 @@
           "name": "thinking_with_tools",
           "description": "thinking + tool_use round trip preserves thinking block signature",
           "ok": true,
-          "elapsed_s": 6.913,
+          "elapsed_s": 6.778,
           "info": {
             "first_blocks": [
               "tool_use"
@@ -661,7 +661,7 @@
           "name": "count_tokens",
           "description": "messages.count_tokens via Anthropic SDK rejected on Bedrock with 'not supported in Bedrock yet'; AWS-native /model/{id}/count-tokens exists separately, see scripts/probe_token_counting.py",
           "ok": true,
-          "elapsed_s": 0.686,
+          "elapsed_s": 0.594,
           "info": {
             "contract": "supported",
             "input_tokens": 17,
@@ -679,13 +679,13 @@
           "name": "tool_use",
           "description": "model selects a tool, then composes a final answer from tool_result",
           "ok": true,
-          "elapsed_s": 4.62,
+          "elapsed_s": 6.291,
           "info": {
             "tool_called": "get_weather",
             "tool_input": {
               "city": "Seoul"
             },
-            "final": "The weather in Seoul is currently **sunny with a temperature of 21\u00b0C** \u2014 pleasan",
+            "final": "The current weather in Seoul is **sunny and 21\u00b0C** \u2014 a pleasant day! Let me know",
             "stop_reason": "end_turn"
           },
           "error": null
@@ -694,7 +694,7 @@
           "name": "builtin_bash_tool",
           "description": "tools=[{type:bash_20250124}] is accepted; model uses it for shell-style requests",
           "ok": true,
-          "elapsed_s": 2.787,
+          "elapsed_s": 2.265,
           "info": {
             "tool_called": "bash",
             "tool_input": {
@@ -708,7 +708,7 @@
           "name": "builtin_memory_tool",
           "description": "tools=[{type:memory_20250818}] \u2014 accepted on Opus 4.6/4.7, rejected on Sonnet 4.6 (not in expected-tags schema)",
           "ok": true,
-          "elapsed_s": 3.106,
+          "elapsed_s": 2.448,
           "info": {
             "contract": "supported",
             "tool_called": "memory",
@@ -724,7 +724,7 @@
           "name": "builtin_text_editor_tool",
           "description": "tools=[{type:text_editor_20250728}] accepted; model emits the tool",
           "ok": true,
-          "elapsed_s": 2.656,
+          "elapsed_s": 2.514,
           "info": {
             "tool_called": "str_replace_based_edit_tool",
             "stop_reason": "tool_use"
@@ -735,7 +735,7 @@
           "name": "tool_choice",
           "description": "tool_choice={type:tool, name:X} forces selection of X",
           "ok": true,
-          "elapsed_s": 2.408,
+          "elapsed_s": 2.464,
           "info": {
             "tool_called": "shout",
             "stop_reason": "tool_use"
@@ -746,7 +746,7 @@
           "name": "tool_choice_variants",
           "description": "tool_choice supports any/none/auto with documented effects",
           "ok": true,
-          "elapsed_s": 5.48,
+          "elapsed_s": 5.704,
           "info": {
             "any_called_tool": true,
             "none_avoided_tool": true,
@@ -758,7 +758,7 @@
           "name": "disable_parallel_tool_use",
           "description": "tool_choice with disable_parallel_tool_use=True yields one tool_use",
           "ok": true,
-          "elapsed_s": 2.876,
+          "elapsed_s": 2.011,
           "info": {
             "tool_use_count": 1,
             "stop_reason": "tool_use"
@@ -769,7 +769,7 @@
           "name": "parallel_tool_use",
           "description": "model returns multiple tool_use blocks in one response",
           "ok": true,
-          "elapsed_s": 3.061,
+          "elapsed_s": 2.902,
           "info": {
             "tool_use_count": 3,
             "cities": [
@@ -785,7 +785,7 @@
           "name": "tool_result_image",
           "description": "tool_result with image content is accepted",
           "ok": true,
-          "elapsed_s": 4.485,
+          "elapsed_s": 3.515,
           "info": {
             "reply": "red.",
             "stop_reason": "end_turn"
@@ -796,7 +796,7 @@
           "name": "strict_tool_use",
           "description": "tools[].strict=True accepted on Opus 4.6 / Sonnet 4.6; rejected on Opus 4.7 (Invoke API) \u2014 Mantle required for that model",
           "ok": true,
-          "elapsed_s": 2.46,
+          "elapsed_s": 2.484,
           "info": {
             "contract": "supported",
             "tool_input": {
@@ -810,14 +810,14 @@
           "name": "token_efficient_tools_reduces_tokens",
           "description": "WITH beta header, output_tokens <= WITHOUT (for same prompt + tool)",
           "ok": true,
-          "elapsed_s": 6.049,
+          "elapsed_s": 5.118,
           "info": {
             "baseline": {
               "stop_reason": "tool_use",
               "input_tokens": 823,
-              "output_tokens": 111,
+              "output_tokens": 110,
               "tool_called": "describe_item",
-              "preview": "I'll look up that item for you now."
+              "preview": "I'll look up that item for you."
             },
             "optimized": {
               "stop_reason": "tool_use",
@@ -826,8 +826,8 @@
               "tool_called": "describe_item",
               "preview": ""
             },
-            "output_token_delta": 12,
-            "relative_reduction": 0.108,
+            "output_token_delta": 11,
+            "relative_reduction": 0.1,
             "reduced": true
           },
           "error": null
@@ -842,7 +842,7 @@
           "name": "compaction_beta_header_rejected_on_bedrock",
           "description": "anthropic-beta: compaction-2025-09-17 rejected on Bedrock despite docs",
           "ok": false,
-          "elapsed_s": 0.591,
+          "elapsed_s": 0.28,
           "info": {
             "contract": "rejected",
             "message": "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Unexpected value(s) `compaction-2025-09-17` for the `anthropic-beta` "
@@ -853,7 +853,7 @@
           "name": "computer_use_tool_rejected_on_opus_4_7",
           "description": "tools=[{type:computer_20250124}] rejected on Bedrock Invoke API for Opus 4.7 / Opus 4.6 / Sonnet 4.6",
           "ok": true,
-          "elapsed_s": 0.329,
+          "elapsed_s": 0.278,
           "info": {
             "contract": "rejected",
             "message": "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': \"tools.0: Input tag 'computer_20250124' found using 'type' does not match any of the expected tags: 'bash_2025"
@@ -864,7 +864,7 @@
           "name": "bedrock_unsupported",
           "description": "Files / Batches / Models endpoints absent or refused on Bedrock",
           "ok": false,
-          "elapsed_s": 0.907,
+          "elapsed_s": 1.249,
           "info": {
             "files": {
               "absent_or_error": true,
@@ -889,7 +889,7 @@
           "name": "server_tools_rejected",
           "description": "server tool types (web_search, web_fetch, code_execution) rejected on Bedrock",
           "ok": false,
-          "elapsed_s": 6.935,
+          "elapsed_s": 6.995,
           "info": {
             "web_search": {
               "rejected": false,
@@ -910,7 +910,7 @@
           "name": "tool_search_tool_rejected_on_opus_4_7",
           "description": "tools=[{type:tool_search_tool_20250706}] rejected on Bedrock Invoke API for Opus 4.7 / Opus 4.6 / Sonnet 4.6",
           "ok": true,
-          "elapsed_s": 0.275,
+          "elapsed_s": 0.583,
           "info": {
             "contract": "rejected",
             "message": "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': \"tools.0: Input tag 'tool_search_tool_20250706' found using 'type' does not match any of the expected tags: 'b"
@@ -927,7 +927,7 @@
           "name": "vision",
           "description": "model accepts an inline base64 PNG and describes it",
           "ok": true,
-          "elapsed_s": 1.73,
+          "elapsed_s": 1.858,
           "info": {
             "reply": "red",
             "stop_reason": "end_turn"
@@ -938,7 +938,7 @@
           "name": "vision_multi_image",
           "description": "two inline images in one turn; model distinguishes them",
           "ok": true,
-          "elapsed_s": 2.5,
+          "elapsed_s": 1.751,
           "info": {
             "reply": "red, green",
             "order_red_first": true

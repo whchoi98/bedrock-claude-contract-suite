@@ -1,16 +1,22 @@
-"""Claude Platform on AWS provider — Anthropic SDK with custom base_url and
-workspace API key authentication.
+"""Claude Platform on AWS provider — uses the official `AnthropicAWS` client.
 
-Endpoint: https://aws-external-anthropic.{region}.api.aws
-Auth: ANTHROPIC_AWS_API_KEY → sent as x-api-key
-Required header: anthropic-workspace-id (from ANTHROPIC_AWS_WORKSPACE_ID)
+Endpoint: https://aws-external-anthropic.{region}.api.aws  (auto-derived)
+Auth:     ANTHROPIC_AWS_API_KEY → sent as x-api-key (SigV4 also supported but
+          not used by this suite; see results/sdk_comparison.md §D).
+Workspace: ANTHROPIC_AWS_WORKSPACE_ID → sent as anthropic-workspace-id header.
+
+The official SDK (`anthropic.AnthropicAWS`, in beta) auto-resolves base_url,
+workspace_id, region, and auth mode from constructor arguments or environment
+variables. We pass them explicitly so the suite's `--providers cpaws` runs
+are reproducible regardless of ambient AWS credentials. See
+`results/sdk_comparison.md` for the full Anthropic vs AnthropicAWS contrast.
 """
 import os
 import sys
-from anthropic import Anthropic
+from anthropic import AnthropicAWS
 
 
-def make_client(region: str) -> Anthropic:
+def make_client(region: str) -> AnthropicAWS:
     api_key = os.environ.get("ANTHROPIC_AWS_API_KEY")
     workspace_id = os.environ.get("ANTHROPIC_AWS_WORKSPACE_ID")
     if not api_key:
@@ -19,8 +25,8 @@ def make_client(region: str) -> Anthropic:
     if not workspace_id:
         print("ERROR: ANTHROPIC_AWS_WORKSPACE_ID not set.", file=sys.stderr)
         sys.exit(2)
-    return Anthropic(
-        base_url=f"https://aws-external-anthropic.{region}.api.aws",
+    return AnthropicAWS(
         api_key=api_key,
-        default_headers={"anthropic-workspace-id": workspace_id},
+        workspace_id=workspace_id,
+        aws_region=region,
     )
