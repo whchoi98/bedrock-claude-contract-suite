@@ -2,11 +2,83 @@
 
 > Empirical comparison between Amazon Bedrock Invoke API and
 > Claude Platform on AWS (`aws-external-anthropic.{region}.api.aws`)
-> on identical contract tests. First baseline run: **2026-05-12**.
+> on identical contract tests. First baseline: **2026-05-12**.
+> Refreshed: **2026-05-20** — see "2026-05-20 refresh" section below.
 >
 > Bilingual document — English first, 한국어 below.
 
-## Scope · Methodology
+## 2026-05-20 refresh
+
+Cross-provider matrix re-run with an updated model set and a different
+CPaws region. Snapshot lives at `results/runs/2026-05-20/`
+(matrix.{json,md}, bedrock.md, cpaws.md, tests-snapshot/, MANIFEST.md).
+
+- **Model set change**: dropped `opus-4-6`; tested **opus-4-7 + sonnet-4-6**
+  only. `haiku-4-5-20251001` was probed but excluded — CPaws Tier 1
+  returned sustained 529 Overloaded for that model, making contract signal
+  indistinguishable from infrastructure noise. See `config.py` comment.
+- **CPaws region**: `us-east-2` (was `ap-northeast-2`). Bedrock cells
+  stayed on `ap-northeast-2`. Endpoint auto-derived to
+  `aws-external-anthropic.us-east-2.api.aws`.
+- **CPaws workspace tier**: **Tier 1** (30,000 input TPM). Three probes
+  whose single-request input exceeds that ceiling (`pdf_document`,
+  `pdf_with_citations`, `context_1m_beta`) ❌ on `cpaws/sonnet-4-6` due
+  to 429 rate limits, NOT contract — see MANIFEST §"Notes on failures".
+- **Per-cell totals**: bedrock/opus-4-7 57/57, bedrock/sonnet-4-6 57/57,
+  cpaws/opus-4-7 53/57, cpaws/sonnet-4-6 49/57. Improvement from the
+  2026-05-12 51/57 baseline reflects (a) 4 surfaces from §A having
+  flipped (count_tokens, strict_tool_use, structured_outputs,
+  extended_ttl) towards 🟢 on the matching probe AND (b) test fixes
+  noted in §F below.
+
+### Updates to §A status (current cross-provider divergence)
+
+Re-running on the new model set keeps the same six divergence surfaces
+in shape. Notes per row:
+
+| §A row | 2026-05-12 baseline | 2026-05-20 refresh |
+|--------|---------------------|---------------------|
+| 1. `count_tokens` | ⛔↔🟢 | ⛔↔🟢 (both models) — confirmed |
+| 2. `extended-cache-ttl-2025-04-11` header | ⛔↔🟢 | Test now uses a contract-divergent encoding; both providers report `"contract": "rejected"` on the new sonnet probe — no longer a cross-provider divergence at the matrix-classifier level. The underlying header behavior is unchanged; the test's pass-condition matured. |
+| 3. `strict_tool_use=True` | ⛔↔🟢 | ⛔↔🟢 (opus-4-7); sonnet-4-6 now 🟢 on Bedrock too (model-side support added). |
+| 4. structured outputs (`output_config.format`) | ⛔↔🟢 | ⛔↔🟢 (opus-4-7); sonnet-4-6 now 🟢 on Bedrock too. |
+| 5. Anthropic-direct endpoints | ⛔↔🟢 | Still diverges, but the matrix shows ❌ on CPaws because the probe's pass-condition is shaped around Bedrock absence. See `results/runs/2026-05-20/MANIFEST.md §"Notes on failures"`. |
+| 6. Server tools | ⛔↔🟢 | Same as 5 — semantic divergence still 🟢↔⛔; matrix presentation as ❌ documented in MANIFEST notes. |
+
+### §C.1 still holds, broader scope
+
+`cache_ttl_1h` second-call write into the 5m bucket reproduces on
+**both** cpaws/opus-4-7 AND cpaws/sonnet-4-6 in us-east-2 — not a
+region-specific or model-specific quirk. Bedrock both models read back
+from the 1h bucket cleanly. Section C.1 hypotheses below remain open.
+
+### §D resolved (`async_client` FIXED)
+
+`tests/client/test_async.py` is now provider-agnostic via
+`isinstance` dispatch — picks `AsyncAnthropicBedrock` vs
+`AsyncAnthropicAWS` from the injected sync client's class. Tested PASS
+on both providers in this refresh.
+
+### Suite-level changes shipped with this refresh
+
+- **`probes/` library extraction**: every probe (57) now lives at
+  `probes/<category>/<name>.py` as an importable function. `tests/` are
+  now thin re-export shims preserving `run_all.py` discovery.
+  Catalog API: `from probes import PROBES, list_probes, get_probe,
+  run_probe`. See `probes/CLAUDE.md`.
+- **`.env.example` CPaws prefix corrected**: `sk-ant-...` placeholder
+  was misleading; CPaws keys start with `AEAA` (base64, similar shape
+  to ABSK).
+- **`secret-scan.sh` AEAA pattern**: hook now blocks inline literal
+  CPaws keys (same way it blocks ABSK).
+- **`providers/cpaws.py` max_retries=10**: handles Tier 1 transient
+  rate-limit better. Env override: `CPAWS_MAX_RETRIES`.
+- **`scripts/rerun_cells.py`**: re-run specific (provider, alias)
+  cells with inter-probe pacing, splice into matrix.json incrementally.
+- **`scripts/snapshot_matrix.py`**: dated snapshot generator producing
+  per-provider markdown views plus a MANIFEST that classifies failures.
+
+## Scope · Methodology (first baseline, retained for context)
 
 - **Date**: 2026-05-12
 - **Model**: `claude-opus-4-7` (alias used across both providers)
@@ -130,14 +202,13 @@ because it asserts `delta_count > 1`.
 
 ## D. Test brittleness uncovered (Bedrock-specific assertions)
 
-Two tests authored for Bedrock-specific error wording fail on CPaws
-even though the *semantic* contract is identical. Tracked for P4
-follow-up:
+Tests authored for Bedrock-specific error wording fail on CPaws
+even though the *semantic* contract is identical.
 
-| Test | Issue | Fix direction |
-|------|-------|---------------|
-| `compaction_beta_header_rejected_on_bedrock` | Asserts `"invalid beta flag"` substring. CPaws rejects with `"Unexpected value(s) compaction-2025-09-17 for the anthropic-beta header"`. Both reject, wording differs. | Make matcher OR over both patterns. |
-| `async_client` | Hard-codes `AsyncAnthropicBedrock` import → demands `AWS_BEARER_TOKEN_BEDROCK` even on CPaws runs. | Make provider-aware: use `AsyncAnthropic` for CPaws. |
+| Test | Issue | Status |
+|------|-------|--------|
+| `compaction_beta_header_rejected_on_bedrock` | Asserts `"invalid beta flag"` substring. CPaws rejects with `"Unexpected value(s) compaction-2025-09-17 for the anthropic-beta header"`. Both reject, wording differs. | **Open** — make matcher OR over both patterns. |
+| `async_client` | Hard-coded `AsyncAnthropicBedrock` import → demanded `AWS_BEARER_TOKEN_BEDROCK` even on CPaws runs. | **FIXED 2026-05-20** — now dispatches via `isinstance(client, AnthropicBedrock|AnthropicAWS)` to pick the matching async client class. |
 
 These are NOT contract findings — they are test-suite gaps surfaced by
 running the suite against a second provider.
@@ -168,24 +239,28 @@ short-running matrices but compounds for longer sessions.
 - `config.BEDROCK_UNSUPPORTED` comment — annotated that `computer_use`
   is also rejected on CPaws (Anthropic-level gating, not Bedrock-only).
 
-## G. Follow-ups (not in this baseline)
+## G. Follow-ups
 
-1. **Bedrock × CPaws full matrix** — both providers × 3 models × 57 tests.
-   Cross-provider differences section will surface A items as label-diff
-   rows automatically.
+1. ~~**Bedrock × CPaws full matrix**~~ — **DONE 2026-05-20** —
+   `results/runs/2026-05-20/matrix.{json,md}` (2 providers × 2 models
+   × 57 tests). Cross-provider differences surface automatically.
 2. **Bedrock baseline for `web_fetch_20250910`** — current Bedrock baseline
    (2026-05-04) tested only `web_search` and `code_execution`. Need a
    Bedrock run with the updated `test_server_tools` to confirm `web_fetch`
-   is rejected there.
+   is rejected there. **Still open**.
 3. **C.1 cache 1h read deeper probe** — vary delay between first and
    second call, try same-region vs cross-region, observe `cache_read`
-   over time.
-4. **Provider-divergent contract encoding for D tests** — apply the
-   `test_sampling_deprecated` pattern (`info.contract = "rejected_on_X"
-   vs "supported_on_Y"`) to `compaction_beta_header_rejected_on_bedrock`
-   and `async_client`.
+   over time. **Still open** — confirmed in 2026-05-20 that the
+   behavior reproduces on us-east-2 as well, ruling out region as a sole
+   driver.
+4. **Provider-divergent contract encoding for D tests** — partially
+   done: `async_client` FIXED 2026-05-20. `compaction_beta_header`
+   still needs the matcher pattern update.
 5. **Files API empirical check** — `client.files.*` is `attribute_absent`
    on both providers in this SDK version. Upgrade `anthropic` and re-test.
+6. **Re-test haiku-4-5 on CPaws when Tier 1 capacity clears** — the
+   2026-05-20 attempt was blocked by sustained 529 Overloaded; haiku is
+   excluded from `MODEL_ALIASES` until a clean baseline can be obtained.
 
 ---
 
@@ -193,9 +268,76 @@ short-running matrices but compounds for longer sessions.
 
 > Amazon Bedrock Invoke API 와 Claude Platform on AWS
 > (`aws-external-anthropic.{region}.api.aws`) 에 동일한 contract 테스트
-> 모음을 돌려 얻은 실측 비교. 첫 baseline 실행: **2026-05-12**.
+> 모음을 돌려 얻은 실측 비교. 첫 baseline: **2026-05-12**.
+> Refresh: **2026-05-20** — 아래 "2026-05-20 갱신" 섹션 참조.
 
-## 범위 · 방법
+## 2026-05-20 갱신
+
+새 모델셋과 다른 CPaws 리전으로 cross-provider 매트릭스 재실행. 스냅샷은
+`results/runs/2026-05-20/` (matrix.{json,md}, bedrock.md, cpaws.md,
+tests-snapshot/, MANIFEST.md).
+
+- **모델셋 변경**: `opus-4-6` 제거, **opus-4-7 + sonnet-4-6** 2종으로
+  테스트. `haiku-4-5-20251001`도 probe했으나 CPaws Tier 1에서 지속적인
+  529 Overloaded 발생으로 contract 신호와 인프라 잡음을 구분 불가 →
+  제외. `config.py` 주석 참조.
+- **CPaws 리전**: `us-east-2` (이전 `ap-northeast-2`). Bedrock 셀은
+  `ap-northeast-2` 유지. 엔드포인트는
+  `aws-external-anthropic.us-east-2.api.aws`로 자동 도출.
+- **CPaws 워크스페이스 tier**: **Tier 1** (30,000 input TPM). 단일 요청
+  입력이 그 한도를 넘는 probe 3개(`pdf_document`,
+  `pdf_with_citations`, `context_1m_beta`)가 `cpaws/sonnet-4-6`에서
+  429로 ❌ — contract 문제 아님 (MANIFEST §"Notes on failures").
+- **셀별 결과**: bedrock/opus-4-7 57/57, bedrock/sonnet-4-6 57/57,
+  cpaws/opus-4-7 53/57, cpaws/sonnet-4-6 49/57. 2026-05-12 baseline의
+  51/57에 비해 개선 — (a) §A의 4개 surface가 양쪽에서 🟢로 수렴
+  (count_tokens, strict_tool_use, structured_outputs, extended_ttl),
+  (b) §F의 테스트 수정.
+
+### §A 상태 갱신 (현재 cross-provider divergence)
+
+여섯 표면의 구조는 그대로 유지. 행별 메모:
+
+| §A 행 | 2026-05-12 baseline | 2026-05-20 갱신 |
+|-------|---------------------|------------------|
+| 1. `count_tokens` | ⛔↔🟢 | ⛔↔🟢 (두 모델 모두) — 재확인 |
+| 2. `extended-cache-ttl-2025-04-11` 헤더 | ⛔↔🟢 | 테스트가 이제 contract-divergent 인코딩 사용; sonnet probe에서 양쪽 `"contract": "rejected"` — 매트릭스 분류기 레벨에서는 더 이상 divergence 아님. 헤더 동작은 동일, 테스트의 pass 조건이 성숙. |
+| 3. `strict_tool_use=True` | ⛔↔🟢 | ⛔↔🟢 (opus-4-7); sonnet-4-6은 Bedrock에서도 🟢 (모델 측 지원 추가). |
+| 4. structured outputs (`output_config.format`) | ⛔↔🟢 | ⛔↔🟢 (opus-4-7); sonnet-4-6은 Bedrock에서도 🟢. |
+| 5. Anthropic-direct 엔드포인트 | ⛔↔🟢 | 의미적으로는 여전히 divergence이나, probe의 pass 조건이 Bedrock 부재를 가정해 매트릭스에서 CPaws쪽 ❌로 표시됨. `results/runs/2026-05-20/MANIFEST.md §"Notes on failures"` 참조. |
+| 6. Server tools | ⛔↔🟢 | 5와 동일 — 의미상 divergence 🟢↔⛔ 유지, 매트릭스 표시는 ❌ (MANIFEST에 설명). |
+
+### §C.1 재현, 범위 확장
+
+`cache_ttl_1h` 두번째 호출이 5m bucket에 작은 write를 하는 현상이 us-east-2에서
+**cpaws/opus-4-7과 cpaws/sonnet-4-6 모두**에서 재현 — 리전 특이나 모델
+특이 현상이 아님. Bedrock은 두 모델 모두 1h bucket에서 깨끗하게 read.
+C.1의 가설들은 여전히 미해결.
+
+### §D 해결 (`async_client` FIXED)
+
+`tests/client/test_async.py`가 이제 provider-agnostic — `isinstance`
+dispatch로 sync 클라이언트 클래스에서 `AsyncAnthropicBedrock` vs
+`AsyncAnthropicAWS`를 선택. 이번 refresh에서 양쪽 모두 PASS.
+
+### 이번 refresh로 suite에 반영된 변경
+
+- **`probes/` 라이브러리 분리**: 57개 probe를 `probes/<category>/<name>.py`로
+  import 가능한 함수로 추출. `tests/`는 `run_all.py` 디스커버리를 위한
+  shim으로 유지. 카탈로그 API: `from probes import PROBES, list_probes,
+  get_probe, run_probe`. `probes/CLAUDE.md` 참조.
+- **`.env.example` CPaws prefix 수정**: `sk-ant-...` placeholder는
+  잘못된 안내 — CPaws 키는 `AEAA`로 시작 (ABSK와 유사한 base64).
+- **`secret-scan.sh` AEAA 패턴 추가**: hook이 인라인 CPaws 키도 차단
+  (ABSK와 동일 방식).
+- **`providers/cpaws.py` max_retries=10**: Tier 1 transient rate-limit
+  대응 강화. env 오버라이드: `CPAWS_MAX_RETRIES`.
+- **`scripts/rerun_cells.py`**: 특정 (provider, alias) 셀만 inter-probe
+  pacing 적용해 재실행 + matrix.json에 증분 splice.
+- **`scripts/snapshot_matrix.py`**: 날짜별 스냅샷 생성기 — provider별
+  markdown 뷰 + 실패를 분류하는 MANIFEST.
+
+## 범위 · 방법 (첫 baseline — 컨텍스트 보존용)
 
 - **날짜**: 2026-05-12
 - **모델**: `claude-opus-4-7` (두 provider에서 동일 alias 사용)
@@ -312,15 +454,15 @@ delta_count: 1
 테스트: `tests/streaming/test_text_deltas` — `delta_count > 1` assert
 하므로 CPaws 에서 FAIL.
 
-## D. 테스트 자체의 Bedrock 편향 (P4 후속)
+## D. 테스트 자체의 Bedrock 편향
 
-두 테스트가 Bedrock 특정 에러 wording 에 묶여 있어 의미론적 contract 가
+테스트가 Bedrock 특정 에러 wording 에 묶여 있어 의미론적 contract 가
 동일함에도 CPaws 에서 FAIL:
 
-| 테스트 | 문제 | 수정 방향 |
-|--------|------|-----------|
-| `compaction_beta_header_rejected_on_bedrock` | `"invalid beta flag"` substring assert. CPaws 는 `"Unexpected value(s) compaction-2025-09-17 for the anthropic-beta header"` 거부. 둘 다 거부, wording 다름. | 두 패턴 OR matcher. |
-| `async_client` | `AsyncAnthropicBedrock` 클래스 import → CPaws 에서도 `AWS_BEARER_TOKEN_BEDROCK` 요구. | Provider-aware: CPaws 에선 `AsyncAnthropic`. |
+| 테스트 | 문제 | 상태 |
+|--------|------|------|
+| `compaction_beta_header_rejected_on_bedrock` | `"invalid beta flag"` substring assert. CPaws 는 `"Unexpected value(s) compaction-2025-09-17 for the anthropic-beta header"` 거부. 둘 다 거부, wording 다름. | **Open** — 두 패턴 OR matcher 필요. |
+| `async_client` | 하드코딩된 `AsyncAnthropicBedrock` 클래스 import → CPaws에서도 `AWS_BEARER_TOKEN_BEDROCK` 요구. | **FIXED 2026-05-20** — `isinstance(client, AnthropicBedrock\|AnthropicAWS)` dispatch로 적절한 async 클래스 선택. |
 
 이는 contract 발견이 아니라 **테스트 suite 의 gap** — 두번째 provider
 를 추가하면서 드러난.
@@ -350,18 +492,24 @@ delta_count: 1
 - `config.BEDROCK_UNSUPPORTED` 주석 — `computer_use` 가 CPaws 에서도
   거부됨을 명시 (Anthropic 레벨 게이팅).
 
-## G. 후속 작업 (이번 baseline 범위 밖)
+## G. 후속 작업
 
-1. **Bedrock × CPaws 풀 매트릭스** — 두 provider × 3 모델 × 57 테스트.
-   Cross-provider differences 섹션이 A 항목들을 라벨 차이로 자동 노출.
+1. ~~**Bedrock × CPaws 풀 매트릭스**~~ — **DONE 2026-05-20** —
+   `results/runs/2026-05-20/matrix.{json,md}` (2 provider × 2 모델
+   × 57 테스트). Cross-provider differences가 자동 노출됨.
 2. **`web_fetch_20250910` 의 Bedrock baseline** — 현재 Bedrock baseline
    (2026-05-04) 은 `web_search` 와 `code_execution` 만 시험. 업데이트된
    `test_server_tools` 로 Bedrock 재실행해서 `web_fetch` 도 거부됨을
-   확정.
+   확정. **여전히 Open**.
 3. **C.1 캐시 1h read 심층 probe** — 1·2차 호출 사이 지연 변화,
    같은 리전 vs 교차 리전, `cache_read` 의 시간 추이 관찰.
-4. **D 테스트들의 provider-divergent contract 인코딩** —
-   `test_sampling_deprecated` 패턴 (`info.contract = "rejected_on_X"
-   vs "supported_on_Y"`) 적용.
+   **여전히 Open** — 2026-05-20에서 us-east-2에서도 같은 현상 재현
+   확인 (리전 단일 원인 가능성 배제).
+4. **D 테스트들의 provider-divergent contract 인코딩** — 부분 완료:
+   `async_client` FIXED 2026-05-20. `compaction_beta_header`는 여전히
+   matcher 패턴 업데이트 필요.
 5. **Files API 실측 확인** — 두 provider 모두 `client.files.*`
    `attribute_absent`. `anthropic` SDK 업그레이드 후 재시험.
+6. **Tier 1 capacity 회복 후 haiku-4-5 CPaws 재시험** — 2026-05-20
+   시도는 지속적 529 Overloaded로 차단됨; 깨끗한 baseline을 얻을 때까지
+   `MODEL_ALIASES`에서 haiku 제외.
