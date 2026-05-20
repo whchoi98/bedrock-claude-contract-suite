@@ -25,8 +25,15 @@ def make_client(region: str) -> AnthropicAWS:
     if not workspace_id:
         print("ERROR: ANTHROPIC_AWS_WORKSPACE_ID not set.", file=sys.stderr)
         sys.exit(2)
+    # Tier 1 workspaces have ~30k input TPM on Sonnet/Opus and lower TPM on
+    # Haiku. The contract suite serially fires 57 probes which can spike
+    # against that budget and produce 429/529. Bump max_retries so the SDK
+    # honours retry-after on transient throttling without us having to thread
+    # retry logic through every probe. Default is 2 — 10 keeps a full sweep
+    # alive across one minute-bucket boundary without runaway runtime.
     return AnthropicAWS(
         api_key=api_key,
         workspace_id=workspace_id,
         aws_region=region,
+        max_retries=int(os.environ.get("CPAWS_MAX_RETRIES", "10")),
     )

@@ -10,19 +10,29 @@ DEFAULT_PROVIDER = "bedrock"
 
 # Model aliases mapped to per-provider concrete model IDs.
 # An alias is the human-friendly identifier used in matrix rows.
+#
+# Model ID formats (verified empirically 2026-05-20):
+#  - bedrock: `global.anthropic.claude-...` (cross-region inference prefix
+#    `global.` works in any region; haiku-4-5 needs the dated `-v1:0` suffix)
+#  - cpaws:   bare `claude-...` (NOT `anthropic:claude-...` — that prefix
+#    was tested and returns 404 not_found_error. Bare IDs match what
+#    `models.list()` returns and match what `messages.create()` accepts.)
 MODEL_ALIASES = {
     "opus-4-7": {
         "bedrock": "global.anthropic.claude-opus-4-7",
         "cpaws":   "claude-opus-4-7",
     },
-    "opus-4-6": {
-        "bedrock": "global.anthropic.claude-opus-4-6-v1",
-        "cpaws":   "claude-opus-4-6",
-    },
     "sonnet-4-6": {
         "bedrock": "global.anthropic.claude-sonnet-4-6",
         "cpaws":   "claude-sonnet-4-6",
     },
+    # haiku-4-5 was tested on 2026-05-20 but excluded from the matrix:
+    # CPaws Tier 1 sustained 529 Overloaded for haiku, making the contract
+    # signal indistinguishable from infrastructure noise. Bedrock haiku
+    # baseline retained in dated snapshots (results/runs/2026-05-20/).
+    # To re-enable, add the alias back here and re-run --all-models.
+    #   bedrock id: "global.anthropic.claude-haiku-4-5-20251001-v1:0"
+    #   cpaws id:   "claude-haiku-4-5-20251001"
 }
 
 # All model aliases iterated in --all-models mode.
