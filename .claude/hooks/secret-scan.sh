@@ -13,6 +13,7 @@ PATTERNS=(
     'AKIA[0-9A-Z]{16}'                          # AWS Access Key ID
     '(?<=aws_secret_access_key\s{0,5}[=:]\s{0,5})[A-Za-z0-9/+=]{40}' # AWS Secret Key
     'ABSK[A-Za-z0-9+/]{60,}={0,2}'              # AWS Bedrock API Key (base64)
+    'AEAA[A-Za-z0-9+/]{60,}={0,2}'              # Claude Platform on AWS (CPaws) API Key (base64)
     'sk-[A-Za-z0-9]{20}T3BlbkFJ[A-Za-z0-9]{20}' # OpenAI API Key
     'sk-ant-[A-Za-z0-9-]{90,}'                   # Anthropic API Key
     'ghp_[A-Za-z0-9]{36}'                        # GitHub Personal Access Token
