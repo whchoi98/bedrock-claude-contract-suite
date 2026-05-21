@@ -60,6 +60,11 @@ def main() -> int:
     ap.add_argument("--matrix-json", type=str,
                     default=str(ROOT / "results" / "matrix.json"),
                     help="Path to matrix.json. Created/updated.")
+    ap.add_argument("--skip-tests", nargs="*", default=[],
+                    help="Probe NAMEs to SKIP in this rerun. Their previous "
+                         "results in matrix.json are preserved (useful when a "
+                         "probe is structurally blocked, e.g. single-request "
+                         "input exceeds CPaws Tier 1 30k ITPM ceiling).")
     args = ap.parse_args()
 
     matrix_path = pathlib.Path(args.matrix_json)
@@ -88,7 +93,19 @@ def main() -> int:
         import run_all as _ra
         _ra.execute = paced_execute   # the runner imports it at module level too
 
-    fake_args = argparse.Namespace(only=None, only_tests=None)
+    # If --skip-tests was given, compute the positive set of test NAMEs to run.
+    only_tests = None
+    skip_set: set[str] = set(args.skip_tests)
+    if skip_set:
+        all_names: set[str] = set()
+        for ms in discover().values():
+            for m in ms:
+                all_names.add(m.NAME)
+        only_tests = sorted(all_names - skip_set)
+        print(f"Skipping {len(skip_set)} probe(s): {sorted(skip_set)}")
+        print(f"Running {len(only_tests)} of {len(all_names)} probes")
+
+    fake_args = argparse.Namespace(only=None, only_tests=only_tests)
 
     for provider, alias in cells:
         model_id = resolve_model(provider, alias)
@@ -107,6 +124,34 @@ def main() -> int:
             continue
         payload["provider"] = provider
         payload["alias"] = alias
+
+        # Merge skipped probes' previous data so the matrix stays complete.
+        if skip_set:
+            existing = matrix.get(provider, {}).get(alias)
+            if existing:
+                # Per-category index of probes that just ran (by NAME).
+                ran_names = {
+                    t["name"]
+                    for c in payload["categories"].values()
+                    for t in c["tests"]
+                }
+                preserved = 0
+                for cat, c in existing.get("categories", {}).items():
+                    for t in c["tests"]:
+                        if t["name"] in skip_set and t["name"] not in ran_names:
+                            # Append the old result into the new payload.
+                            payload_cat = payload["categories"].setdefault(
+                                cat, {"passed": 0, "total": 0, "tests": []},
+                            )
+                            payload_cat["tests"].append(t)
+                            payload_cat["total"] += 1
+                            if t["ok"]:
+                                payload_cat["passed"] += 1
+                            payload["totals"]["total"] += 1
+                            if t["ok"]:
+                                payload["totals"]["passed"] += 1
+                            preserved += 1
+                print(f"  → preserved {preserved} skipped probe(s) from prior matrix")
 
         matrix.setdefault(provider, {})[alias] = payload
         passed = payload["totals"]["passed"]

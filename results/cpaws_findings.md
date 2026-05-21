@@ -7,6 +7,34 @@
 >
 > Bilingual document — English first, 한국어 below.
 
+## 2026-05-21 addendum — Tier 1 non-determinism observation
+
+Re-ran `cpaws/sonnet-4-6` with the 3 single-call-overflow probes
+skipped (`rerun_cells.py --skip-tests pdf_document pdf_with_citations
+context_1m_beta --pacing-delay 8`), expecting the 54 remaining probes
+to pass cleanly. Result: **46/57** (vs. 2026-05-20's 49/57).
+
+**Three NEW 429s in `messages/` category** (`basic`,
+`max_tokens_truncation`, `context_editing_works`) — these probes have
+~30-50 token inputs, yet got rate-limited. Diagnosis: Tier 1's 30k
+input TPM is a **rolling 60-second window**, and earlier probes had
+exhausted the budget. Even tiny probes can 429 if running within the
+same minute window as larger ones.
+
+**Implication**: Tier 1 is non-deterministic for matrix-style serial
+runs. The same probe will pass or fail depending on its position in
+the run and what ran in the prior 60 seconds. Snapshot at
+`results/runs/2026-05-21/` with classification in MANIFEST.md.
+
+Two baselines now coexist:
+- `results/runs/2026-05-20/` — original 49/57, 3 single-call overflow ❌
+- `results/runs/2026-05-21/` — 46/57, same 3 + 3 cumulative-TPM ❌
+
+Both are empirically valid representations of "what Tier 1 sonnet
+behavior looks like on a 57-probe serial sweep". For deterministic
+data, upgrade to Tier 2+ or split the run across multiple minute
+windows with ≥15s pacing.
+
 ## 2026-05-20 refresh
 
 Cross-provider matrix re-run with an updated model set and a different
@@ -270,6 +298,30 @@ short-running matrices but compounds for longer sessions.
 > (`aws-external-anthropic.{region}.api.aws`) 에 동일한 contract 테스트
 > 모음을 돌려 얻은 실측 비교. 첫 baseline: **2026-05-12**.
 > Refresh: **2026-05-20** — 아래 "2026-05-20 갱신" 섹션 참조.
+
+## 2026-05-21 추가 — Tier 1 non-determinism 관찰
+
+`cpaws/sonnet-4-6`를 단일-호출 overflow probe 3개 (`pdf_document`,
+`pdf_with_citations`, `context_1m_beta`) 를 skip 한 채 재실행
+(`rerun_cells.py --skip-tests ... --pacing-delay 8`) — 나머지 54개가
+깨끗하게 통과 예상이었으나 결과: **46/57** (2026-05-20의 49/57 보다 −3).
+
+**`messages/` 카테고리에서 3개 새 429** (`basic`,
+`max_tokens_truncation`, `context_editing_works`) — 이 probe들의 입력은
+~30-50 토큰 정도로 작은데도 rate-limit. 진단: Tier 1 의 30k input TPM 은
+**60초 rolling window** 이고, 앞선 probe들이 budget을 소진하면 직후의
+작은 probe도 429.
+
+**함의**: Tier 1 은 매트릭스 형 직렬 sweep 에서 *non-deterministic*.
+같은 probe 가 실행 순서와 직전 60초의 다른 probe 활동에 따라 PASS/FAIL.
+스냅샷 `results/runs/2026-05-21/` MANIFEST.md 에 분류.
+
+이제 baseline 2개 공존:
+- `results/runs/2026-05-20/` — 원본 49/57, 단일-호출 overflow ❌ 3개
+- `results/runs/2026-05-21/` — 46/57, 위 3개 + 누적-TPM ❌ 3개 추가
+
+둘 다 "Tier 1 sonnet 의 57-probe 직렬 sweep 동작" 의 실측 표현. 결정론적
+데이터를 원하면 Tier 2+ 업그레이드 또는 분당 윈도우 분할 + ≥15초 pacing.
 
 ## 2026-05-20 갱신
 
